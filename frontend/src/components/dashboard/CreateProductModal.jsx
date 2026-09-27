@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { X, Package, DollarSign, Tag, Layers, CheckCircle, AlertCircle, Plus } from 'lucide-react';
+import { X, Package, DollarSign, Tag, Layers, CheckCircle, AlertCircle, Plus, Trash2, Sliders } from 'lucide-react';
 import { Input } from '../ui/Input.jsx';
 import { Button } from '../ui/Button.jsx';
 import { createProductSchema } from '../../../../shared/schemas/product.schema.js';
 import { useCreateProduct } from '../../hooks/useProducts.js';
-import { useBrands, useCategories, useAllAttributeValues } from '../../hooks/useCatalog.js';
+import { useBrands, useCategories, useAttributes, useAllAttributeValues } from '../../hooks/useCatalog.js';
 import { CreateBrandModal } from './CreateBrandModal.jsx';
 import { CreateCategoryModal } from './CreateCategoryModal.jsx';
 
@@ -13,17 +13,13 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, accessToken }) 
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState(''); // drives smart brand sort
 
+  // Form state
   const [formData, setFormData] = useState({
     name: '',
     sku: '',
     barcode: '',
     brandId: '',
     categoryId: '',
-    modelName: '',
-    color: '',
-    size: '',
-    material: '',
-    warrantyInfo: '',
     shortDescription: '',
     description: '',
     priceUsd1: '',
@@ -34,41 +30,81 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, accessToken }) 
     minStockAlert: 5,
   });
 
+  // Dynamic user-selected attribute rows: [{ id: string, attributeId: string, value: string }]
+  const [selectedAttributes, setSelectedAttributes] = useState([]);
+
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState('');
   const createProductMutation = useCreateProduct(accessToken);
 
-  // brands se re-sortean automáticamente cuando cambia selectedCategoryId
+  // Queries
   const { data: brands = [] } = useBrands(accessToken, selectedCategoryId || null);
   const { data: categories = [] } = useCategories(accessToken);
+  const { data: attributes = [] } = useAttributes(accessToken);
   const { data: attributeValues = [] } = useAllAttributeValues(accessToken);
 
   if (!isOpen) return null;
-
-  // Filter attribute values per category/type for auto-suggestions
-  const modelOptions = attributeValues.filter((v) => v.attributeName?.toLowerCase().includes('modelo'));
-  const colorOptions = attributeValues.filter((v) => v.attributeName?.toLowerCase().includes('color'));
-  const sizeOptions = attributeValues.filter((v) => v.attributeName?.toLowerCase().includes('talla') || v.attributeName?.toLowerCase().includes('almacenamiento'));
-  const materialOptions = attributeValues.filter((v) => v.attributeName?.toLowerCase().includes('material'));
-  const warrantyOptions = attributeValues.filter((v) => v.attributeName?.toLowerCase().includes('garantía') || v.attributeName?.toLowerCase().includes('garantia'));
 
   const handleChange = (e) => {
     const { name, value, type } = e.target;
     const parsed = type === 'number' ? Number(value) : value;
     setFormData((prev) => ({ ...prev, [name]: parsed }));
 
-    // Sync selectedCategoryId so useBrands re-fetches with smart sort
     if (name === 'categoryId') setSelectedCategoryId(value);
-
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: null }));
     if (serverError) setServerError('');
+  };
+
+  // Dynamic attribute row handlers
+  const handleAddAttributeRow = () => {
+    setSelectedAttributes((prev) => [
+      ...prev,
+      { id: `row-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`, attributeId: '', value: '' },
+    ]);
+  };
+
+  const handleRemoveAttributeRow = (rowId) => {
+    setSelectedAttributes((prev) => prev.filter((r) => r.id !== rowId));
+  };
+
+  const handleAttributeRowChange = (rowId, field, val) => {
+    setSelectedAttributes((prev) =>
+      prev.map((r) => (r.id === rowId ? { ...r, [field]: val } : r))
+    );
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Map dynamic attribute rows into model fields vs custom attributes payload
+    const mappedAttrs = {
+      modelName: null,
+      color: null,
+      size: null,
+      material: null,
+      warrantyInfo: null,
+      customAttributes: [],
+    };
+
+    selectedAttributes.forEach((row) => {
+      if (!row.attributeId || !row.value) return;
+      const attrObj = attributes.find((a) => a.id === row.attributeId);
+      if (!attrObj) return;
+
+      const nameLower = attrObj.name.toLowerCase();
+      if (nameLower.includes('modelo')) mappedAttrs.modelName = row.value;
+      else if (nameLower.includes('color')) mappedAttrs.color = row.value;
+      else if (nameLower.includes('talla') || nameLower.includes('almacenamiento')) mappedAttrs.size = row.value;
+      else if (nameLower.includes('material')) mappedAttrs.material = row.value;
+      else if (nameLower.includes('garantía') || nameLower.includes('garantia')) mappedAttrs.warrantyInfo = row.value;
+      else {
+        mappedAttrs.customAttributes.push({ attributeId: row.attributeId, value: row.value });
+      }
+    });
+
     const payload = {
       ...formData,
+      ...mappedAttrs,
       brandId: formData.brandId || undefined,
       categoryId: formData.categoryId || undefined,
     };
@@ -149,6 +185,7 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, accessToken }) 
             <Input label="SKU / Código" name="sku" value={formData.sku} onChange={handleChange} placeholder="IPHONE-15-256" icon={Tag} />
           </div>
 
+          {/* Clasificación obligatoria/por defecto: Marca & Categoría */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
@@ -190,7 +227,6 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, accessToken }) 
               >
                 <option value="">-- Sin Marca --</option>
                 {formData.categoryId ? (
-                  // Con categoría seleccionada: separar sugeridas vs otras
                   (() => {
                     const suggested = brands.filter((b) => (b.categoryUsage ?? 0) > 0);
                     const others = brands.filter((b) => (b.categoryUsage ?? 0) === 0);
@@ -267,37 +303,119 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, accessToken }) 
             </div>
           </div>
 
-          {/* Atributos Maestros con Auto-sugerencias Dinámicas */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
-            <Input label="Modelo" name="modelName" value={formData.modelName} onChange={handleChange} placeholder="Pro Max" list="model-options" />
-            <datalist id="model-options">
-              {modelOptions.map((v) => <option key={v.id} value={v.value} />)}
-            </datalist>
+          {/* Sección Dinámica de Atributos & Especificaciones */}
+          <div style={{ padding: '16px', borderRadius: 'var(--radius-md)', backgroundColor: 'rgba(79, 70, 229, 0.03)', border: '1px solid rgba(79, 70, 229, 0.15)', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+              <div>
+                <h4 style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Sliders size={15} style={{ color: '#4f46e5' }} />
+                  Atributos del Producto
+                </h4>
+                <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                  Agregá solo los atributos que apliquen a este producto (ej. Color, Talla, Modelo, Garantía...)
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={handleAddAttributeRow}
+                style={{
+                  background: 'linear-gradient(135deg, #4f46e5 0%, #312e81 100%)',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '6px 12px',
+                  fontSize: '12px',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
+                <Plus size={14} /> Atributo
+              </button>
+            </div>
 
-            <Input label="Color" name="color" value={formData.color} onChange={handleChange} placeholder="Titanio Natural" list="color-options" />
-            <datalist id="color-options">
-              {colorOptions.map((v) => <option key={v.id} value={v.value} />)}
-            </datalist>
+            {selectedAttributes.length === 0 ? (
+              <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', fontStyle: 'italic', padding: '8px 0' }}>
+                No hay atributos asignados. Hacé clic en "+ Atributo" para agregar uno (ej. Color = Titanio Natural).
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {selectedAttributes.map((row) => {
+                  const selectedAttrObj = attributes.find((a) => a.id === row.attributeId);
+                  const availableValues = selectedAttrObj
+                    ? attributeValues.filter((v) => v.attributeId === selectedAttrObj.id || v.attributeName === selectedAttrObj.name)
+                    : [];
+                  const datalistId = `datalist-${row.id}`;
 
-            <Input label="Talla / Almacenamiento" name="size" value={formData.size} onChange={handleChange} placeholder="256GB / M" list="size-options" />
-            <datalist id="size-options">
-              {sizeOptions.map((v) => <option key={v.id} value={v.value} />)}
-            </datalist>
+                  return (
+                    <div key={row.id} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      {/* Dropdown de Atributo */}
+                      <select
+                        value={row.attributeId}
+                        onChange={(e) => handleAttributeRowChange(row.id, 'attributeId', e.target.value)}
+                        style={{
+                          flex: 1,
+                          padding: '8px 12px',
+                          fontSize: '13px',
+                          borderRadius: 'var(--radius-sm)',
+                          border: '1px solid var(--border-subtle)',
+                          backgroundColor: 'var(--bg-secondary)',
+                          color: 'var(--text-primary)',
+                          outline: 'none',
+                        }}
+                      >
+                        <option value="">-- Seleccionar Atributo --</option>
+                        {attributes.map((attr) => (
+                          <option key={attr.id} value={attr.id}>
+                            {attr.name} {attr.code ? `(${attr.code})` : ''}
+                          </option>
+                        ))}
+                      </select>
+
+                      {/* Input de Valor con Auto-sugerencia */}
+                      <input
+                        type="text"
+                        value={row.value}
+                        onChange={(e) => handleAttributeRowChange(row.id, 'value', e.target.value)}
+                        placeholder={selectedAttrObj ? `Valor para ${selectedAttrObj.name}...` : 'Valor...'}
+                        list={datalistId}
+                        style={{
+                          flex: 1.5,
+                          padding: '8px 12px',
+                          fontSize: '13px',
+                          borderRadius: 'var(--radius-sm)',
+                          border: '1px solid var(--border-subtle)',
+                          backgroundColor: 'var(--bg-secondary)',
+                          color: 'var(--text-primary)',
+                          outline: 'none',
+                        }}
+                      />
+                      <datalist id={datalistId}>
+                        {availableValues.map((v) => (
+                          <option key={v.id} value={v.value} />
+                        ))}
+                      </datalist>
+
+                      {/* Botón eliminar fila */}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveAttributeRow(row.id)}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', padding: '6px' }}
+                        onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--status-danger)')}
+                        onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-tertiary)')}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-            <Input label="Material" name="material" value={formData.material} onChange={handleChange} placeholder="Titanio & Cristal" list="material-options" />
-            <datalist id="material-options">
-              {materialOptions.map((v) => <option key={v.id} value={v.value} />)}
-            </datalist>
-
-            <Input label="Garantía" name="warrantyInfo" value={formData.warrantyInfo} onChange={handleChange} placeholder="12 Meses Oficial" list="warranty-options" />
-            <datalist id="warranty-options">
-              {warrantyOptions.map((v) => <option key={v.id} value={v.value} />)}
-            </datalist>
-          </div>
-
-          {/* Precios Multi-nivel con decimal.js (8 decimales) */}
+          {/* Precios Multi-nivel USD (8 decimales exactos) */}
           <h4 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--accent-primary)', textTransform: 'uppercase', marginTop: '8px', marginBottom: '12px' }}>
             Precios USD (8 decimales exactos)
           </h4>

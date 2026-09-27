@@ -4,7 +4,7 @@ import app from '../../backend/src/app.js';
 import { runMigrations } from '../../backend/src/db/migrate.js';
 
 /**
- * Integration tests for Catalog API (Brands, Categories, Custom Attributes)
+ * Integration tests for Catalog API (Brands, Categories, Custom & Master Attributes)
  * Each test is isolated under a unique tenant created at setup time.
  */
 describe('Catalog API Integration Tests', () => {
@@ -105,7 +105,6 @@ describe('Catalog API Integration Tests', () => {
 
       expect(res.status).toBe(201);
       expect(res.body.data.name).toBe('Electrónica Gadgets');
-      // Slug: lowercase + NFD normalization + non-alphanumeric → '-' + collapse duplicates
       expect(res.body.data.slug).toBe('electronica-gadgets');
       categoryId = res.body.data.id;
     });
@@ -138,10 +137,11 @@ describe('Catalog API Integration Tests', () => {
     });
   });
 
-  // ── Custom Attributes ────────────────────────────────────────────────────
+  // ── Master Attributes & Values ────────────────────────────────────────────
 
-  describe('Custom Attributes', () => {
+  describe('Master Attributes & Values', () => {
     let attributeId = '';
+    let valueId = '';
 
     it('debe crear un atributo personalizado (HTTP 201)', async () => {
       const res = await request(app)
@@ -154,14 +154,33 @@ describe('Catalog API Integration Tests', () => {
       attributeId = res.body.data.id;
     });
 
-    it('debe listar atributos del tenant (HTTP 200)', async () => {
+    it('debe crear un valor para el atributo (HTTP 201)', async () => {
       const res = await request(app)
-        .get('/api/v1/catalog/attributes')
+        .post(`/api/v1/catalog/attributes/${attributeId}/values`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ value: '220V' });
+
+      expect(res.status).toBe(201);
+      expect(res.body.data.value).toBe('220V');
+      valueId = res.body.data.id;
+    });
+
+    it('debe listar valores del atributo (HTTP 200)', async () => {
+      const res = await request(app)
+        .get(`/api/v1/catalog/attributes/${attributeId}/values`)
         .set('Authorization', `Bearer ${authToken}`);
 
       expect(res.status).toBe(200);
       expect(Array.isArray(res.body.data)).toBe(true);
-      expect(res.body.data.length).toBeGreaterThan(0);
+      expect(res.body.data.length).toBe(1);
+    });
+
+    it('debe eliminar un valor de atributo (HTTP 200)', async () => {
+      const res = await request(app)
+        .delete(`/api/v1/catalog/attributes/values/${valueId}`)
+        .set('Authorization', `Bearer ${authToken}`);
+
+      expect(res.status).toBe(200);
     });
 
     it('debe eliminar un atributo personalizado (HTTP 200)', async () => {
@@ -185,7 +204,6 @@ describe('Catalog API Integration Tests', () => {
   // ── Tenant isolation ─────────────────────────────────────────────────────
 
   it('no debe devolver marcas de otro tenant', async () => {
-    // Create a second independent tenant
     const tenant2 = {
       storeName: 'Otra Tienda',
       slug: `other-${Date.now()}`,
@@ -206,7 +224,6 @@ describe('Catalog API Integration Tests', () => {
     });
     const token2 = login2.body.data.accessToken;
 
-    // Tenant 2 should see 0 brands (none created for it)
     const res = await request(app)
       .get('/api/v1/catalog/brands')
       .set('Authorization', `Bearer ${token2}`);
