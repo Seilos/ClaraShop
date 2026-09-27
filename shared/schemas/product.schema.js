@@ -80,11 +80,13 @@ export const createProductSchema = z.object({
 
 export const createBrandSchema = z.object({
   name: z.string().min(1, 'El nombre de la marca es requerido'),
+  description: z.string().optional().nullable(),
   logoUrl: z.string().optional().nullable(),
 });
 
 export const createCategorySchema = z.object({
   name: z.string().min(1, 'El nombre de la categoría es requerido'),
+  description: z.string().optional().nullable(),
 });
 
 export const createAttributeSchema = z.object({

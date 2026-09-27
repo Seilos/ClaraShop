@@ -1,6 +1,6 @@
 import { db } from '../db/index.js';
-import { brands, categories, customAttributes } from '../db/schema.js';
-import { eq, and } from 'drizzle-orm';
+import { brands, categories, customAttributes, products } from '../db/schema.js';
+import { eq, and, sql, count } from 'drizzle-orm';
 import { logger } from '../utils/logger.js';
 import { ProductService } from './product.service.js';
 
@@ -16,14 +16,37 @@ export class BrandService {
    */
   static async createBrand(tenantId, data) {
     const id = ProductService.generateUUIDv7();
-    await db.insert(brands).values({ id, tenantId, name: data.name, logoUrl: data.logoUrl ?? null });
+    await db.insert(brands).values({ id, tenantId, name: data.name, description: data.description ?? null, logoUrl: data.logoUrl ?? null });
     logger.info({ tenantId, brandId: id, name: data.name, msg: 'Brand created' });
     return this.getBrandById(tenantId, id);
   }
 
-  /** List all brands for a tenant */
-  static async listBrands(tenantId) {
-    return db.select().from(brands).where(eq(brands.tenantId, tenantId)).all();
+  /**
+   * List all brands for a tenant with product count.
+   * When categoryId is provided, brands are sorted by usage in that category first
+   * (smart suggestions: brands already used in that category appear at top).
+   */
+  static async listBrands(tenantId, categoryId = null) {
+    const rows = await db
+      .select({
+        id: brands.id,
+        tenantId: brands.tenantId,
+        name: brands.name,
+        description: brands.description,
+        logoUrl: brands.logoUrl,
+        createdAt: brands.createdAt,
+        productCount: sql`COUNT(${products.id})`.as('productCount'),
+        categoryUsage: categoryId
+          ? sql`SUM(CASE WHEN ${products.categoryId} = ${categoryId} THEN 1 ELSE 0 END)`.as('categoryUsage')
+          : sql`0`.as('categoryUsage'),
+      })
+      .from(brands)
+      .leftJoin(products, and(eq(products.brandId, brands.id), eq(products.tenantId, tenantId), eq(products.isActive, 1)))
+      .where(eq(brands.tenantId, tenantId))
+      .groupBy(brands.id)
+      .orderBy(sql`categoryUsage DESC`, sql`productCount DESC`, brands.name)
+      .all();
+    return rows;
   }
 
   /**
@@ -48,9 +71,13 @@ export class BrandService {
       err.statusCode = 404;
       throw err;
     }
+    const updatePayload = {};
+    if (data.name !== undefined) updatePayload.name = data.name;
+    if (data.description !== undefined) updatePayload.description = data.description;
+    if (data.logoUrl !== undefined) updatePayload.logoUrl = data.logoUrl;
     await db
       .update(brands)
-      .set({ ...data })
+      .set(updatePayload)
       .where(and(eq(brands.id, brandId), eq(brands.tenantId, tenantId)));
     logger.info({ tenantId, brandId, msg: 'Brand updated' });
     return this.getBrandById(tenantId, brandId);
@@ -90,14 +117,29 @@ export class CategoryService {
       .replace(/[^a-z0-9-]/g, '-')
       .replace(/-+/g, '-');
 
-    await db.insert(categories).values({ id, tenantId, name: data.name, slug });
+    await db.insert(categories).values({ id, tenantId, name: data.name, description: data.description ?? null, slug });
     logger.info({ tenantId, categoryId: id, name: data.name, msg: 'Category created' });
     return this.getCategoryById(tenantId, id);
   }
 
-  /** List all categories for a tenant */
+  /** List all categories for a tenant with product count */
   static async listCategories(tenantId) {
-    return db.select().from(categories).where(eq(categories.tenantId, tenantId)).all();
+    const rows = await db
+      .select({
+        id: categories.id,
+        tenantId: categories.tenantId,
+        name: categories.name,
+        description: categories.description,
+        slug: categories.slug,
+        createdAt: categories.createdAt,
+        productCount: sql`COUNT(${products.id})`.as('productCount'),
+      })
+      .from(categories)
+      .leftJoin(products, and(eq(products.categoryId, categories.id), eq(products.tenantId, tenantId), eq(products.isActive, 1)))
+      .where(eq(categories.tenantId, tenantId))
+      .groupBy(categories.id)
+      .all();
+    return rows;
   }
 
   /**
@@ -131,6 +173,7 @@ export class CategoryService {
         .replace(/[^a-z0-9-]/g, '-')
         .replace(/-+/g, '-');
     }
+    if (data.description !== undefined) updatePayload.description = data.description;
     await db
       .update(categories)
       .set(updatePayload)

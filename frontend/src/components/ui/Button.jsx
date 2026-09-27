@@ -34,9 +34,12 @@ export function Button({
     if (variant === 'primary') {
       return {
         ...base,
-        backgroundColor: 'var(--accent-primary)',
+        background: 'linear-gradient(135deg, #4f46e5 0%, #312e81 100%)',
         color: '#ffffff',
-        boxShadow: '0 4px 14px rgba(0, 122, 255, 0.3)',
+        fontWeight: '700',
+        borderRadius: '12px',
+        border: '1px solid rgba(255, 255, 255, 0.2)',
+        boxShadow: '0 6px 20px rgba(79, 70, 229, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.25)',
       };
     }
 

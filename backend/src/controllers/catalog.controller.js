@@ -14,7 +14,8 @@ import {
 export class BrandController {
   static async listBrands(req, res, next) {
     try {
-      const data = await BrandService.listBrands(req.tenantId);
+      const { categoryId } = req.query;
+      const data = await BrandService.listBrands(req.tenantId, categoryId || null);
       return res.status(200).json({ success: true, data });
     } catch (err) {
       next(err);

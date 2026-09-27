@@ -61,12 +61,9 @@ export function ProductsList({ accessToken, onOpenCreateModal }) {
         <div style={{ padding: '60px 40px', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255, 255, 255, 0.45)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
           <Package size={48} style={{ color: 'var(--text-tertiary)', marginBottom: '12px' }} />
           <h4 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '4px' }}>No hay productos en el catálogo</h4>
-          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
             Hacé clic en "Nuevo Producto" para agregar el primero con precios en 8 decimales.
           </p>
-          <Button variant="primary" onClick={onOpenCreateModal} icon={Plus}>
-            Agregar Producto
-          </Button>
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>

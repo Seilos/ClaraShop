@@ -141,7 +141,7 @@ export function CurrencySettings({ accessToken }) {
           </div>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <div style={{ marginTop: 'auto', paddingTop: '24px', display: 'flex', justifyContent: 'flex-end' }}>
           <Button type="submit" variant="primary" isLoading={updateCurrenciesMutation.isPending} icon={Save}>
             Guardar Tasa de Cambio
           </Button>

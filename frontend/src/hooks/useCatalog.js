@@ -21,13 +21,16 @@ function authHeaders(token) {
 
 // ── Brands ────────────────────────────────────────────────────────────────────
 
-export function useBrands(accessToken) {
+export function useBrands(accessToken, categoryId = null) {
   return useQuery({
-    queryKey: [KEYS.brands],
-    queryFn: () => api.get('/catalog/brands', { headers: authHeaders(accessToken) }),
+    queryKey: [KEYS.brands, categoryId],
+    queryFn: () => {
+      const params = categoryId ? `?categoryId=${categoryId}` : '';
+      return api.get(`/catalog/brands${params}`, { headers: authHeaders(accessToken) });
+    },
     select: (res) => res.data,
     enabled: !!accessToken,
-    staleTime: 60_000,
+    staleTime: 30_000,
   });
 }
 

@@ -104,7 +104,7 @@ export function RegisterForm({ onSuccess, onToggleLogin }) {
 
       {/* Sección 1: Datos de la Tienda */}
       <div style={{ marginBottom: '16px' }}>
-        <h4 style={{ fontSize: '12px', fontWeight: '800', color: '#334155', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+        <h4 style={{ fontSize: '12px', fontWeight: '800', color: '#0f172a', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
           1. Configuración de Tienda
         </h4>
 
@@ -129,7 +129,7 @@ export function RegisterForm({ onSuccess, onToggleLogin }) {
 
       {/* Sección 2: Datos del Usuario Administrador */}
       <div style={{ marginBottom: '16px' }}>
-        <h4 style={{ fontSize: '12px', fontWeight: '800', color: '#334155', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+        <h4 style={{ fontSize: '12px', fontWeight: '800', color: '#0f172a', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
           2. Datos del Administrador
         </h4>
 
@@ -184,7 +184,7 @@ export function RegisterForm({ onSuccess, onToggleLogin }) {
 
       {/* Sección 3: Ubicación y Dirección */}
       <div style={{ marginBottom: '20px' }}>
-        <h4 style={{ fontSize: '12px', fontWeight: '800', color: '#334155', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+        <h4 style={{ fontSize: '12px', fontWeight: '800', color: '#0f172a', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
           3. Dirección de Operaciones
         </h4>
 

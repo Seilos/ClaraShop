@@ -78,6 +78,7 @@ export const brands = sqliteTable('brands', {
   id: text('id').primaryKey(), // UUIDv7
   tenantId: text('tenant_id').notNull().references(() => tenants.id, { onDelete: 'cascade' }),
   name: text('name').notNull(),
+  description: text('description'),
   logoUrl: text('logo_url'),
   createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
 });
@@ -87,7 +88,17 @@ export const categories = sqliteTable('categories', {
   id: text('id').primaryKey(), // UUIDv7
   tenantId: text('tenant_id').notNull().references(() => tenants.id, { onDelete: 'cascade' }),
   name: text('name').notNull(),
+  description: text('description'),
   slug: text('slug').notNull(),
+  createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
+});
+
+// Tabla de Relación Marca ↔ Categoría (N:M — future-ready, no UI yet)
+// Permite vincular una marca a múltiples categorías para sugerencias inteligentes.
+export const brandCategories = sqliteTable('brand_categories', {
+  brandId: text('brand_id').notNull().references(() => brands.id, { onDelete: 'cascade' }),
+  categoryId: text('category_id').notNull().references(() => categories.id, { onDelete: 'cascade' }),
+  tenantId: text('tenant_id').notNull().references(() => tenants.id, { onDelete: 'cascade' }),
   createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
 });
 

@@ -111,7 +111,7 @@ export function ProfileSettings({ accessToken }) {
 
         <Input label="Dirección de la Tienda" name="address" value={formData.address} onChange={handleChange} icon={MapPin} required />
 
-        <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
+        <div style={{ marginTop: 'auto', paddingTop: '24px', display: 'flex', justifyContent: 'flex-end' }}>
           <Button type="submit" variant="primary" isLoading={updateProfileMutation.isPending} icon={Save}>
             Guardar Cambios
           </Button>

@@ -85,6 +85,14 @@ export async function runMigrations() {
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS brand_categories (
+      brand_id TEXT NOT NULL REFERENCES brands(id) ON DELETE CASCADE,
+      category_id TEXT NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+      tenant_id TEXT NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (brand_id, category_id)
+    );
+
     CREATE TABLE IF NOT EXISTS custom_attributes (
       id TEXT PRIMARY KEY,
       tenant_id TEXT NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
@@ -165,4 +173,20 @@ export async function runMigrations() {
       subtotal_usd TEXT NOT NULL
     );
   `);
+
+  // Additive migrations: safe to run multiple times (column may already exist)
+  const additiveMigrations = [
+    `ALTER TABLE brands ADD COLUMN description TEXT`,
+    `ALTER TABLE categories ADD COLUMN description TEXT`,
+    // brand_categories is created via CREATE TABLE IF NOT EXISTS above — no ALTER needed
+  ];
+
+  for (const sql of additiveMigrations) {
+    try {
+      await client.execute(sql);
+    } catch (err) {
+      // SQLite throws if column already exists — safe to ignore
+      if (!err.message?.includes('duplicate column name')) throw err;
+    }
+  }
 }

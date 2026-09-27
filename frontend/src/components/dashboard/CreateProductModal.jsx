@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
-import { X, Package, DollarSign, Tag, Layers, CheckCircle, AlertCircle } from 'lucide-react';
+import { X, Package, DollarSign, Tag, Layers, CheckCircle, AlertCircle, Plus } from 'lucide-react';
 import { Input } from '../ui/Input.jsx';
 import { Button } from '../ui/Button.jsx';
 import { createProductSchema } from '../../../../shared/schemas/product.schema.js';
 import { useCreateProduct } from '../../hooks/useProducts.js';
 import { useBrands, useCategories } from '../../hooks/useCatalog.js';
+import { CreateBrandModal } from './CreateBrandModal.jsx';
+import { CreateCategoryModal } from './CreateCategoryModal.jsx';
 
 export function CreateProductModal({ isOpen, onClose, onSuccess, accessToken }) {
-  const { data: brands = [] } = useBrands(accessToken);
-  const { data: categories = [] } = useCategories(accessToken);
+  const [isAddBrandOpen, setIsAddBrandOpen] = useState(false);
+  const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
+  const [selectedCategoryId, setSelectedCategoryId] = useState(''); // drives smart brand sort
 
   const [formData, setFormData] = useState({
     name: '',
@@ -35,14 +38,19 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, accessToken }) 
   const [serverError, setServerError] = useState('');
   const createProductMutation = useCreateProduct(accessToken);
 
+  // brands se re-sortean automáticamente cuando cambia selectedCategoryId
+  const { data: brands = [] } = useBrands(accessToken, selectedCategoryId || null);
+  const { data: categories = [] } = useCategories(accessToken);
+
   if (!isOpen) return null;
 
   const handleChange = (e) => {
     const { name, value, type } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === 'number' ? Number(value) : value,
-    }));
+    const parsed = type === 'number' ? Number(value) : value;
+    setFormData((prev) => ({ ...prev, [name]: parsed }));
+
+    // Sync selectedCategoryId so useBrands re-fetches with smart sort
+    if (name === 'categoryId') setSelectedCategoryId(value);
 
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: null }));
     if (serverError) setServerError('');
@@ -135,9 +143,28 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, accessToken }) 
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                Marca
-              </label>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <label style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)' }}>
+                  Marca
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setIsAddBrandOpen(true)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#4f46e5',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  <Plus size={13} /> Nueva
+                </button>
+              </div>
               <select
                 name="brandId"
                 value={formData.brandId}
@@ -154,16 +181,61 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, accessToken }) 
                 }}
               >
                 <option value="">-- Sin Marca --</option>
-                {brands.map((b) => (
-                  <option key={b.id} value={b.id}>{b.name}</option>
-                ))}
+                {formData.categoryId ? (
+                  // Con categoría seleccionada: separar sugeridas vs otras
+                  (() => {
+                    const suggested = brands.filter((b) => (b.categoryUsage ?? 0) > 0);
+                    const others = brands.filter((b) => (b.categoryUsage ?? 0) === 0);
+                    return (
+                      <>
+                        {suggested.length > 0 && (
+                          <optgroup label="✦ Usadas en esta categoría">
+                            {suggested.map((b) => (
+                              <option key={b.id} value={b.id}>{b.name}</option>
+                            ))}
+                          </optgroup>
+                        )}
+                        {others.length > 0 && (
+                          <optgroup label={suggested.length > 0 ? 'Otras marcas' : 'Todas las marcas'}>
+                            {others.map((b) => (
+                              <option key={b.id} value={b.id}>{b.name}</option>
+                            ))}
+                          </optgroup>
+                        )}
+                      </>
+                    );
+                  })()
+                ) : (
+                  brands.map((b) => (
+                    <option key={b.id} value={b.id}>{b.name}</option>
+                  ))
+                )}
               </select>
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                Categoría
-              </label>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <label style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)' }}>
+                  Categoría
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setIsAddCategoryOpen(true)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#4f46e5',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  <Plus size={13} /> Nueva
+                </button>
+              </div>
               <select
                 name="categoryId"
                 value={formData.categoryId}
@@ -233,6 +305,29 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, accessToken }) 
           </div>
         </form>
       </div>
+
+      {/* Modales de Creación Rápida */}
+      <CreateBrandModal
+        isOpen={isAddBrandOpen}
+        onClose={() => setIsAddBrandOpen(false)}
+        accessToken={accessToken}
+        onSuccess={(newBrand) => {
+          if (newBrand?.id) {
+            setFormData((prev) => ({ ...prev, brandId: newBrand.id }));
+          }
+        }}
+      />
+
+      <CreateCategoryModal
+        isOpen={isAddCategoryOpen}
+        onClose={() => setIsAddCategoryOpen(false)}
+        accessToken={accessToken}
+        onSuccess={(newCategory) => {
+          if (newCategory?.id) {
+            setFormData((prev) => ({ ...prev, categoryId: newCategory.id }));
+          }
+        }}
+      />
     </div>
   );
 }

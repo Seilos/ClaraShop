@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Palette, CheckCircle2, Sparkles, Store, Layers } from 'lucide-react';
+import { Palette, CheckCircle2, Sparkles, Store, Layers, Save } from 'lucide-react';
+import { Button } from '../ui/Button.jsx';
 
 export function StyleSettings({ selectedTheme = 'clarashop', onSelectTheme }) {
   const [selectedStyle, setSelectedStyle] = useState(selectedTheme); // 'clarashop' | 'custom'
@@ -175,16 +176,16 @@ export function StyleSettings({ selectedTheme = 'clarashop', onSelectTheme }) {
 
         </div>
 
-        {/* Notificación de estado */}
-        <div style={{ marginTop: '24px', textAlign: 'right' }}>
-          <button
+        {/* Botón de guardado alineado a la derecha */}
+        <div style={{ marginTop: 'auto', paddingTop: '24px', display: 'flex', justifyContent: 'flex-end' }}>
+          <Button
             type="button"
-            className="btn-luxury-primary"
-            style={{ width: 'auto', padding: '12px 24px', fontSize: '14px' }}
+            variant="primary"
+            icon={Save}
             onClick={() => alert(`Estilo guardado: ${selectedStyle === 'clarashop' ? 'Estilo ClaraShop' : 'Estilo Propio'}`)}
           >
             Guardar preferencia de estilo
-          </button>
+          </Button>
         </div>
 
       </div>

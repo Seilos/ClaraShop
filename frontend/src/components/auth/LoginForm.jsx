@@ -121,7 +121,7 @@ export function LoginForm({ onSuccess, onToggleRegister }) {
           </div>
         ) : (
           <form onSubmit={handleForgotSubmit}>
-            <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '16px', lineHeight: '1.4' }}>
+            <p style={{ fontSize: '13px', color: '#334155', fontWeight: '500', marginBottom: '16px', lineHeight: '1.4' }}>
               Ingresá tu correo electrónico registrado y te enviaremos las instrucciones para restablecer tu clave.
             </p>
 
@@ -207,7 +207,8 @@ export function LoginForm({ onSuccess, onToggleRegister }) {
             alignItems: 'center',
             gap: '8px',
             fontSize: '13px',
-            color: 'var(--text-secondary)',
+            color: '#1e293b',
+            fontWeight: '600',
             cursor: 'pointer',
           }}
         >
