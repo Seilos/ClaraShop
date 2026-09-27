@@ -10,7 +10,15 @@ import { User } from 'lucide-react';
 
 export function DashboardPage({ user, accessToken, onLogout }) {
   const [activeView, setActiveView] = useState('products'); // 'products' | 'catalog' | 'profile' | 'currencies' | 'styles'
+  const [selectedTheme, setSelectedTheme] = useState(() => {
+    return localStorage.getItem('clarashop_theme') || 'clarashop';
+  });
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  const handleThemeChange = (newTheme) => {
+    setSelectedTheme(newTheme);
+    localStorage.setItem('clarashop_theme', newTheme);
+  };
 
   const getHeaderTitle = () => {
     switch (activeView) {
@@ -31,23 +39,37 @@ export function DashboardPage({ user, accessToken, onLogout }) {
 
   return (
     <div
+      className={selectedTheme === 'clarashop' ? 'theme-clarashop' : ''}
       style={{
+        position: 'relative',
         minHeight: '100vh',
         display: 'flex',
         padding: '24px',
         backgroundColor: 'var(--bg-primary)',
+        overflow: 'hidden',
+        boxSizing: 'border-box',
       }}
     >
-      {/* Panel Lateral con Menú Desplegable */}
-      <Sidebar
-        activeView={activeView}
-        setActiveView={setActiveView}
-        tenantName={user?.tenantSlug || 'Mi Tienda'}
-        onLogout={onLogout}
-      />
+      {/* Capa de Auras Ambientales Flotantes (si el tema ClaraShop está activo) */}
+      {selectedTheme === 'clarashop' && (
+        <div className="aura-container">
+          <div className="aura-orb aura-orb-1" />
+          <div className="aura-orb aura-orb-2" />
+          <div className="aura-orb aura-orb-3" />
+        </div>
+      )}
 
-      {/* Área Principal de Contenido */}
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+      {/* Panel Lateral con Menú Desplegable */}
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', width: '100%' }}>
+        <Sidebar
+          activeView={activeView}
+          setActiveView={setActiveView}
+          tenantName={user?.tenantSlug || 'Mi Tienda'}
+          onLogout={onLogout}
+        />
+
+        {/* Área Principal de Contenido */}
+        <main style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {/* Header Superior Estilo Apple */}
         <header
           className="apple-glass"
@@ -100,9 +122,12 @@ export function DashboardPage({ user, accessToken, onLogout }) {
           {activeView === 'catalog' && <CatalogManager accessToken={accessToken} />}
           {activeView === 'profile' && <ProfileSettings accessToken={accessToken} />}
           {activeView === 'currencies' && <CurrencySettings accessToken={accessToken} />}
-          {activeView === 'styles' && <StyleSettings />}
+          {activeView === 'styles' && (
+            <StyleSettings selectedTheme={selectedTheme} onSelectTheme={handleThemeChange} />
+          )}
         </section>
       </main>
+      </div>
 
       {/* Modal de Creación de Producto */}
       <CreateProductModal

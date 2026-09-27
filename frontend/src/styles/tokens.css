@@ -61,6 +61,20 @@
   }
 }
 
+/* Tema Exclusivo ClaraShop: Glassmorphism + Auras Ambientales */
+.theme-clarashop {
+  --bg-primary: #0b0f19;
+  --bg-secondary: rgba(255, 255, 255, 0.92);
+  --bg-glass: linear-gradient(145deg, rgba(255, 255, 255, 0.86) 0%, rgba(235, 243, 255, 0.78) 100%);
+  --bg-glass-border: rgba(255, 255, 255, 0.6);
+  --backdrop-blur: blur(30px) saturate(200%);
+  --shadow-md: 0 20px 50px rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.85);
+  --text-primary: #0f172a;
+  --text-secondary: #1e293b;
+  --text-tertiary: #475569;
+  --border-subtle: rgba(255, 255, 255, 0.4);
+}
+
 /* Base Styles */
 * {
   box-sizing: border-box;

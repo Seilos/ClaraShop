@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
 import { Palette, CheckCircle2, Sparkles, Store, Layers } from 'lucide-react';
 
-export function StyleSettings() {
-  const [selectedStyle, setSelectedStyle] = useState('clarashop'); // 'clarashop' | 'custom'
+export function StyleSettings({ selectedTheme = 'clarashop', onSelectTheme }) {
+  const [selectedStyle, setSelectedStyle] = useState(selectedTheme); // 'clarashop' | 'custom'
+
+  const handleSelect = (style) => {
+    setSelectedStyle(style);
+    if (onSelectTheme) onSelectTheme(style);
+  };
 
   return (
     <div style={{ width: '100%', maxWidth: '900px' }}>
@@ -46,7 +51,7 @@ export function StyleSettings() {
           
           {/* Opción 1: Estilo ClaraShop (Actual) */}
           <div
-            onClick={() => setSelectedStyle('clarashop')}
+            onClick={() => handleSelect('clarashop')}
             style={{
               padding: '22px',
               borderRadius: '16px',
@@ -128,7 +133,7 @@ export function StyleSettings() {
 
           {/* Opción 2: Estilo Propio / Personalizado */}
           <div
-            onClick={() => setSelectedStyle('custom')}
+            onClick={() => handleSelect('custom')}
             style={{
               padding: '22px',
               borderRadius: '16px',
