@@ -1,5 +1,5 @@
 import { db } from '../db/index.js';
-import { brands, categories, customAttributes, productAttributes, attributeValues, products } from '../db/schema.js';
+import { brands, categories, customAttributes, productAttributes, attributeValues, products, productAttributeValues } from '../db/schema.js';
 import { eq, and, sql, count } from 'drizzle-orm';
 import { logger } from '../utils/logger.js';
 import { ProductService } from './product.service.js';
@@ -228,9 +228,28 @@ export class AttributeService {
   ];
 
   /**
-   * Ensure default system attributes exist for tenant
+   * Ensure default system attributes exist for tenant and legacy attributes have codes
    */
   static async ensureDefaultAttributes(tenantId) {
+    // 1. Migrate legacy customAttributes if not already migrated
+    const legacyAttrs = await db.select().from(customAttributes).where(eq(customAttributes.tenantId, tenantId)).all();
+    for (const leg of legacyAttrs) {
+      const existingInProduct = await db.select().from(productAttributes).where(eq(productAttributes.id, leg.id)).get();
+      if (!existingInProduct) {
+        const cleanName = (leg.name || '').trim().substring(0, 3).toUpperCase();
+        const code = cleanName.length >= 2 ? `ATT-${cleanName}` : 'ATT-CST';
+        await db.insert(productAttributes).values({
+          id: leg.id,
+          tenantId,
+          code,
+          name: leg.name,
+          description: null,
+          isSystem: false,
+        });
+      }
+    }
+
+    // 2. Seed default system attributes if completely empty
     const existing = await db.select().from(productAttributes).where(eq(productAttributes.tenantId, tenantId)).all();
     if (existing.length === 0) {
       for (const attr of this.DEFAULT_ATTRIBUTES) {
@@ -245,13 +264,23 @@ export class AttributeService {
         });
       }
     }
+
+    // 3. Auto-repair any attribute records missing a code
+    const uncoded = await db.select().from(productAttributes).where(and(eq(productAttributes.tenantId, tenantId), sql`code IS NULL OR code = ''`)).all();
+    for (let i = 0; i < uncoded.length; i++) {
+      const item = uncoded[i];
+      const cleanName = (item.name || '').trim().substring(0, 3).toUpperCase();
+      const code = cleanName.length >= 2 ? `ATT-${cleanName}` : `ATT-${String(i + 1).padStart(3, '0')}`;
+      await db.update(productAttributes).set({ code }).where(eq(productAttributes.id, item.id));
+    }
   }
 
   /**
-   * List all master attributes for a tenant, with counts of values
+   * List all master attributes for a tenant, with counts of values and product usage
    */
   static async listAttributes(tenantId) {
     await this.ensureDefaultAttributes(tenantId);
+
     const rows = await db
       .select({
         id: productAttributes.id,
@@ -261,7 +290,22 @@ export class AttributeService {
         description: productAttributes.description,
         isSystem: productAttributes.isSystem,
         createdAt: productAttributes.createdAt,
-        valueCount: sql`COUNT(${attributeValues.id})`.as('valueCount'),
+        valueCount: sql`COUNT(DISTINCT ${attributeValues.id})`.as('valueCount'),
+        productCount: sql`(
+          SELECT COUNT(DISTINCT p.id) FROM products p
+          WHERE p.tenant_id = ${tenantId} AND p.is_active = 1
+          AND (
+            (LOWER(${productAttributes.name}) LIKE '%modelo%' AND p.model_name IS NOT NULL AND p.model_name != '') OR
+            (LOWER(${productAttributes.name}) LIKE '%color%' AND p.color IS NOT NULL AND p.color != '') OR
+            (LOWER(${productAttributes.name}) LIKE '%talla%' AND p.size IS NOT NULL AND p.size != '') OR
+            (LOWER(${productAttributes.name}) LIKE '%material%' AND p.material IS NOT NULL AND p.material != '') OR
+            (LOWER(${productAttributes.name}) LIKE '%garant%' AND p.warranty_info IS NOT NULL AND p.warranty_info != '') OR
+            EXISTS (
+              SELECT 1 FROM product_attribute_values pav
+              WHERE pav.product_id = p.id AND pav.attribute_id = ${productAttributes.id}
+            )
+          )
+        )`.as('productCount'),
       })
       .from(productAttributes)
       .leftJoin(attributeValues, and(eq(attributeValues.attributeId, productAttributes.id), eq(attributeValues.tenantId, tenantId)))
@@ -269,6 +313,7 @@ export class AttributeService {
       .groupBy(productAttributes.id)
       .orderBy(productAttributes.code, productAttributes.name)
       .all();
+
     return rows;
   }
 
@@ -279,13 +324,18 @@ export class AttributeService {
     const id = ProductService.generateUUIDv7();
     const countAttr = await db.select({ count: count() }).from(productAttributes).where(eq(productAttributes.tenantId, tenantId)).get();
     const nextNum = (countAttr?.count || 0) + 1;
-    const code = data.code || `ATT-${String(nextNum).padStart(3, '0')}`;
+    
+    let code = data.code;
+    if (!code) {
+      const cleanName = (data.name || '').trim().substring(0, 3).toUpperCase();
+      code = cleanName.length >= 2 ? `ATT-${cleanName}` : `ATT-${String(nextNum).padStart(3, '0')}`;
+    }
 
     await db.insert(productAttributes).values({
       id,
       tenantId,
       code,
-      name: data.name,
+      name: data.name.trim(),
       description: data.description ?? null,
       isSystem: false,
     });
@@ -293,13 +343,45 @@ export class AttributeService {
     return this.getAttributeById(tenantId, id);
   }
 
-  /** Get single attribute by ID */
+  /** Get single attribute by ID with legacy fallback & auto-repair */
   static async getAttributeById(tenantId, attributeId) {
-    return db
+    let attr = await db
       .select()
       .from(productAttributes)
       .where(and(eq(productAttributes.id, attributeId), eq(productAttributes.tenantId, tenantId)))
-      .get() ?? null;
+      .get();
+
+    if (!attr) {
+      // Check legacy customAttributes table
+      const legacy = await db
+        .select()
+        .from(customAttributes)
+        .where(and(eq(customAttributes.id, attributeId), eq(customAttributes.tenantId, tenantId)))
+        .get();
+
+      if (legacy) {
+        const cleanName = (legacy.name || '').trim().substring(0, 3).toUpperCase();
+        const code = `ATT-${cleanName}`;
+        await db.insert(productAttributes).values({
+          id: legacy.id,
+          tenantId: legacy.tenantId,
+          code,
+          name: legacy.name,
+          description: null,
+          isSystem: false,
+        });
+        attr = await db.select().from(productAttributes).where(eq(productAttributes.id, attributeId)).get();
+      }
+    }
+
+    if (attr && !attr.code) {
+      const cleanName = (attr.name || '').trim().substring(0, 3).toUpperCase();
+      const code = `ATT-${cleanName}`;
+      await db.update(productAttributes).set({ code }).where(eq(productAttributes.id, attributeId));
+      attr.code = code;
+    }
+
+    return attr ?? null;
   }
 
   /** Update master attribute */
@@ -311,7 +393,7 @@ export class AttributeService {
       throw err;
     }
     const updatePayload = {};
-    if (data.name !== undefined) updatePayload.name = data.name;
+    if (data.name !== undefined) updatePayload.name = data.name.trim();
     if (data.description !== undefined) updatePayload.description = data.description;
     if (data.code !== undefined) updatePayload.code = data.code;
 
@@ -336,7 +418,7 @@ export class AttributeService {
   // -------------------------------------------------------------------------
 
   /**
-   * List all values for a specific attribute (e.g., all Colors or all Sizes)
+   * List all values for a specific attribute
    */
   static async listAttributeValues(tenantId, attributeId) {
     return db
@@ -348,7 +430,7 @@ export class AttributeService {
   }
 
   /**
-   * List ALL values for ALL attributes of a tenant (grouped or flattened for fast catalog lookup)
+   * List ALL values for ALL attributes of a tenant
    */
   static async listAllAttributeValues(tenantId) {
     await this.ensureDefaultAttributes(tenantId);
@@ -376,7 +458,7 @@ export class AttributeService {
   static async createAttributeValue(tenantId, attributeId, data) {
     const attr = await this.getAttributeById(tenantId, attributeId);
     if (!attr) {
-      const err = new Error('Parent attribute not found');
+      const err = new Error('Atributo padre no encontrado');
       err.statusCode = 404;
       throw err;
     }
@@ -389,7 +471,6 @@ export class AttributeService {
       .get();
     const nextNum = (countVal?.count || 0) + 1;
     
-    // Prefix based on attribute code if available (e.g. COL-001, TAL-001, VAL-001)
     const prefix = attr.code ? attr.code.replace('ATT-', '') : 'VAL';
     const code = data.code || `${prefix}-${String(nextNum).padStart(3, '0')}`;
 
@@ -398,7 +479,7 @@ export class AttributeService {
       tenantId,
       attributeId,
       code,
-      value: data.value,
+      value: data.value.trim(),
       description: data.description ?? null,
     });
     logger.info({ tenantId, attributeId, valueId: id, value: data.value, code, msg: 'Attribute value created' });
@@ -423,7 +504,7 @@ export class AttributeService {
       throw err;
     }
     const updatePayload = {};
-    if (data.value !== undefined) updatePayload.value = data.value;
+    if (data.value !== undefined) updatePayload.value = data.value.trim();
     if (data.description !== undefined) updatePayload.description = data.description;
     if (data.code !== undefined) updatePayload.code = data.code;
 

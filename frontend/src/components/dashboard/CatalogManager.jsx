@@ -206,8 +206,8 @@ function MasterAttributeRow({ item, accessToken, onDelete, onUpdate }) {
       });
       setNewValue('');
       setNewDesc('');
-    } catch {
-      alert('Error al crear valor de atributo');
+    } catch (err) {
+      alert(err.response?.data?.error?.message || err.message || 'Error al crear valor de atributo');
     }
   };
 
@@ -215,10 +215,13 @@ function MasterAttributeRow({ item, accessToken, onDelete, onUpdate }) {
     if (!window.confirm(`¿Eliminar el valor "${valName}"?`)) return;
     try {
       await deleteValue.mutateAsync(valId);
-    } catch {
-      alert('Error al eliminar valor');
+    } catch (err) {
+      alert(err.response?.data?.error?.message || 'Error al eliminar valor');
     }
   };
+
+  // Generate fallback code display if code field was null
+  const displayCode = item.code || `ATT-${(item.name || '').substring(0, 3).toUpperCase()}`;
 
   return (
     <>
@@ -230,8 +233,8 @@ function MasterAttributeRow({ item, accessToken, onDelete, onUpdate }) {
         }}
       >
         {/* Code */}
-        <td style={{ padding: '14px 16px', fontSize: '13px', fontWeight: '700', color: 'var(--accent-primary)', fontFamily: 'monospace' }}>
-          {item.code}
+        <td style={{ padding: '14px 16px', fontSize: '13px', fontWeight: '700', color: 'var(--accent-primary)', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
+          {displayCode}
         </td>
 
         {/* Name & description */}
@@ -247,6 +250,26 @@ function MasterAttributeRow({ item, accessToken, onDelete, onUpdate }) {
           {item.description && (
             <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>{item.description}</div>
           )}
+        </td>
+
+        {/* Product Count column */}
+        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              fontSize: '13px',
+              fontWeight: '700',
+              color: item.productCount > 0 ? '#4f46e5' : 'var(--text-tertiary)',
+              padding: '3px 10px',
+              borderRadius: 'var(--radius-full)',
+              backgroundColor: item.productCount > 0 ? 'rgba(79, 70, 229, 0.1)' : 'rgba(0, 0, 0, 0.04)',
+            }}
+          >
+            <Package size={13} />
+            {item.productCount ?? 0}
+          </span>
         </td>
 
         {/* Values count + expand toggle */}
@@ -294,8 +317,8 @@ function MasterAttributeRow({ item, accessToken, onDelete, onUpdate }) {
       {/* Expanded drawer for attribute values */}
       {isExpanded && (
         <tr>
-          <td colSpan={4} style={{ padding: '0 16px 16px 48px', backgroundColor: 'rgba(79, 70, 229, 0.03)', borderBottom: '1px solid var(--border-subtle)' }}>
-            <div style={{ padding: '16px', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(79, 70, 229, 0.2)', backgroundColor: 'rgba(255, 255, 255, 0.85)' }}>
+          <td colSpan={5} style={{ padding: '0 16px 16px 48px', backgroundColor: 'rgba(79, 70, 229, 0.03)', borderBottom: '1px solid var(--border-subtle)' }}>
+            <div style={{ padding: '16px', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(79, 70, 229, 0.2)', backgroundColor: 'rgba(255, 255, 255, 0.85)', marginTop: '8px' }}>
               <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Sparkles size={14} style={{ color: '#4f46e5' }} />
                 Valores Maestros Registrados para {item.name}
@@ -402,8 +425,8 @@ export function CatalogManager({ accessToken }) {
       if (type === 'brand') await deleteBrand.mutateAsync(id);
       else if (type === 'category') await deleteCategory.mutateAsync(id);
       else await deleteAttribute.mutateAsync(id);
-    } catch {
-      alert('Error al eliminar');
+    } catch (err) {
+      alert(err.response?.data?.error?.message || 'Error al eliminar');
     }
   };
 
@@ -415,7 +438,7 @@ export function CatalogManager({ accessToken }) {
       setNewAttrName('');
       setNewAttrDesc('');
     } catch (err) {
-      alert(err.response?.data?.error?.message || 'Error al crear atributo');
+      alert(err.response?.data?.error?.message || err.message || 'Error al crear atributo');
     }
   };
 
@@ -461,7 +484,7 @@ export function CatalogManager({ accessToken }) {
       }}
     >
       {/* Header Tabs con diseño de alta visibilidad */}
-      <div style={{ display: 'flex', gap: '10px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '14px' }}>
+      <div style={{ display: 'flex', gap: '10px', borderBottom: '1.5px solid var(--border-subtle)', paddingBottom: '14px' }}>
         {tabs.map((t) => {
           const Icon = t.icon;
           const isActive = tab === t.id;
@@ -563,7 +586,7 @@ export function CatalogManager({ accessToken }) {
         {isTagTab ? (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ backgroundColor: 'rgba(79, 70, 229, 0.05)', borderBottom: '1px solid var(--border-subtle)' }}>
+              <tr style={{ backgroundColor: 'rgba(79, 70, 229, 0.05)', borderBottom: '1.5px solid var(--border-subtle)' }}>
                 <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: '700', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>
                   {tab === 'brands' ? 'Marca' : 'Slug'}
                 </th>
@@ -605,15 +628,18 @@ export function CatalogManager({ accessToken }) {
             </tbody>
           </table>
         ) : (
-          // Master Attributes Table with expandable values drawer
+          // Master Attributes Table with expandable values drawer and subtle row divider lines
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ backgroundColor: 'rgba(79, 70, 229, 0.05)', borderBottom: '1px solid var(--border-subtle)' }}>
+              <tr style={{ backgroundColor: 'rgba(79, 70, 229, 0.05)', borderBottom: '1.5px solid var(--border-subtle)' }}>
                 <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: '700', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>
                   Código
                 </th>
                 <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: '700', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                   Atributo / Descripción
+                </th>
+                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '11px', fontWeight: '700', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>
+                  Productos
                 </th>
                 <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '11px', fontWeight: '700', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>
                   Valores Guardados
@@ -626,7 +652,7 @@ export function CatalogManager({ accessToken }) {
             <tbody>
               {filteredAttributes.length === 0 ? (
                 <tr>
-                  <td colSpan={4} style={{ padding: '48px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '14px' }}>
+                  <td colSpan={5} style={{ padding: '48px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '14px' }}>
                     {search ? `Sin resultados para "${search}"` : 'No hay atributos registrados. Creá el primero.'}
                   </td>
                 </tr>
