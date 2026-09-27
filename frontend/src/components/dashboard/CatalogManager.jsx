@@ -45,18 +45,18 @@ function EditableRow({ item, onSave, onDelete, codeLabel }) {
       style={{
         borderBottom: '1px solid var(--border-subtle)',
         transition: 'background 150ms ease',
-        backgroundColor: isEditing ? 'rgba(79, 70, 229, 0.03)' : 'transparent',
+        backgroundColor: isEditing ? 'rgba(79, 70, 229, 0.04)' : 'transparent',
       }}
-      onMouseEnter={(e) => { if (!isEditing) e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.02)'; }}
+      onMouseEnter={(e) => { if (!isEditing) e.currentTarget.style.backgroundColor = 'rgba(79, 70, 229, 0.02)'; }}
       onMouseLeave={(e) => { if (!isEditing) e.currentTarget.style.backgroundColor = 'transparent'; }}
     >
       {/* Code / slug */}
-      <td style={{ padding: '12px 16px', fontSize: '12px', fontWeight: '700', color: 'var(--text-tertiary)', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
+      <td style={{ padding: '14px 16px', fontSize: '13px', fontWeight: '700', color: 'var(--accent-primary)', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
         {codeLabel}
       </td>
 
       {/* Name + description */}
-      <td style={{ padding: '12px 16px', flex: 1 }}>
+      <td style={{ padding: '14px 16px', flex: 1 }}>
         {isEditing ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <input
@@ -95,27 +95,27 @@ function EditableRow({ item, onSave, onDelete, codeLabel }) {
           </div>
         ) : (
           <div>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>{item.name}</div>
+            <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>{item.name}</div>
             {item.description && (
-              <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '2px' }}>{item.description}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>{item.description}</div>
             )}
           </div>
         )}
       </td>
 
       {/* Product count */}
-      <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+      <td style={{ padding: '14px 16px', textAlign: 'center' }}>
         <span
           style={{
             display: 'inline-flex',
             alignItems: 'center',
             gap: '4px',
             fontSize: '13px',
-            fontWeight: '600',
+            fontWeight: '700',
             color: item.productCount > 0 ? '#4f46e5' : 'var(--text-tertiary)',
-            padding: '2px 8px',
+            padding: '3px 10px',
             borderRadius: 'var(--radius-full)',
-            backgroundColor: item.productCount > 0 ? 'rgba(79, 70, 229, 0.08)' : 'transparent',
+            backgroundColor: item.productCount > 0 ? 'rgba(79, 70, 229, 0.1)' : 'rgba(0, 0, 0, 0.04)',
           }}
         >
           <Package size={13} />
@@ -124,7 +124,7 @@ function EditableRow({ item, onSave, onDelete, codeLabel }) {
       </td>
 
       {/* Actions */}
-      <td style={{ padding: '12px 16px', textAlign: 'right', whiteSpace: 'nowrap' }}>
+      <td style={{ padding: '14px 16px', textAlign: 'right', whiteSpace: 'nowrap' }}>
         {isEditing ? (
           <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
             <button
@@ -161,9 +161,9 @@ function EditableRow({ item, onSave, onDelete, codeLabel }) {
               type="button"
               onClick={() => setIsEditing(true)}
               title="Editar"
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', padding: '4px', borderRadius: '4px' }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: '4px', borderRadius: '4px' }}
               onMouseEnter={(e) => (e.currentTarget.style.color = '#4f46e5')}
-              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-tertiary)')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-secondary)')}
             >
               <Edit2 size={15} />
             </button>
@@ -171,9 +171,9 @@ function EditableRow({ item, onSave, onDelete, codeLabel }) {
               type="button"
               onClick={() => onDelete(item.id, item.name)}
               title="Eliminar"
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', padding: '4px', borderRadius: '4px' }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: '4px', borderRadius: '4px' }}
               onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--status-danger)')}
-              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-tertiary)')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-secondary)')}
             >
               <Trash2 size={15} />
             </button>
@@ -225,32 +225,32 @@ function MasterAttributeRow({ item, accessToken, onDelete, onUpdate }) {
       <tr
         style={{
           borderBottom: '1px solid var(--border-subtle)',
-          backgroundColor: isExpanded ? 'rgba(79, 70, 229, 0.02)' : 'transparent',
+          backgroundColor: isExpanded ? 'rgba(79, 70, 229, 0.04)' : 'transparent',
           transition: 'background 150ms ease',
         }}
       >
         {/* Code */}
-        <td style={{ padding: '12px 16px', fontSize: '12px', fontWeight: '700', color: 'var(--text-tertiary)', fontFamily: 'monospace' }}>
+        <td style={{ padding: '14px 16px', fontSize: '13px', fontWeight: '700', color: 'var(--accent-primary)', fontFamily: 'monospace' }}>
           {item.code}
         </td>
 
         {/* Name & description */}
-        <td style={{ padding: '12px 16px' }}>
+        <td style={{ padding: '14px 16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>{item.name}</span>
+            <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>{item.name}</span>
             {item.isSystem && (
-              <span style={{ fontSize: '10px', fontWeight: '700', padding: '2px 6px', borderRadius: '4px', backgroundColor: 'rgba(79, 70, 229, 0.1)', color: '#4f46e5' }}>
+              <span style={{ fontSize: '10px', fontWeight: '700', padding: '2px 8px', borderRadius: '4px', backgroundColor: 'rgba(79, 70, 229, 0.12)', color: '#4f46e5' }}>
                 Sistema
               </span>
             )}
           </div>
           {item.description && (
-            <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '2px' }}>{item.description}</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>{item.description}</div>
           )}
         </td>
 
         {/* Values count + expand toggle */}
-        <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
           <button
             type="button"
             onClick={() => setIsExpanded(!isExpanded)}
@@ -259,13 +259,14 @@ function MasterAttributeRow({ item, accessToken, onDelete, onUpdate }) {
               alignItems: 'center',
               gap: '6px',
               fontSize: '12px',
-              fontWeight: '600',
+              fontWeight: '700',
               color: '#4f46e5',
-              padding: '4px 10px',
+              padding: '5px 12px',
               borderRadius: 'var(--radius-full)',
-              backgroundColor: 'rgba(79, 70, 229, 0.08)',
+              backgroundColor: 'rgba(79, 70, 229, 0.1)',
               border: 'none',
               cursor: 'pointer',
+              transition: 'all 150ms ease',
             }}
           >
             <span>{item.valueCount || 0} valores</span>
@@ -274,15 +275,15 @@ function MasterAttributeRow({ item, accessToken, onDelete, onUpdate }) {
         </td>
 
         {/* Actions */}
-        <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+        <td style={{ padding: '14px 16px', textAlign: 'right' }}>
           {!item.isSystem && (
             <button
               type="button"
               onClick={() => onDelete(item.id, item.name)}
               title="Eliminar atributo maestro"
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', padding: '4px' }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: '4px' }}
               onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--status-danger)')}
-              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-tertiary)')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-secondary)')}
             >
               <Trash2 size={15} />
             </button>
@@ -293,15 +294,15 @@ function MasterAttributeRow({ item, accessToken, onDelete, onUpdate }) {
       {/* Expanded drawer for attribute values */}
       {isExpanded && (
         <tr>
-          <td colSpan={4} style={{ padding: '0 16px 16px 48px', backgroundColor: 'rgba(79, 70, 229, 0.02)', borderBottom: '1px solid var(--border-subtle)' }}>
-            <div style={{ padding: '14px', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(79, 70, 229, 0.15)', backgroundColor: 'var(--bg-secondary)' }}>
-              <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Sparkles size={13} style={{ color: '#4f46e5' }} />
-                Valores Maestros para {item.name}
+          <td colSpan={4} style={{ padding: '0 16px 16px 48px', backgroundColor: 'rgba(79, 70, 229, 0.03)', borderBottom: '1px solid var(--border-subtle)' }}>
+            <div style={{ padding: '16px', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(79, 70, 229, 0.2)', backgroundColor: 'rgba(255, 255, 255, 0.85)' }}>
+              <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Sparkles size={14} style={{ color: '#4f46e5' }} />
+                Valores Maestros Registrados para {item.name}
               </div>
 
               {/* Form to add new value */}
-              <form onSubmit={handleAddValue} style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+              <form onSubmit={handleAddValue} style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
                 <input
                   type="text"
                   value={newValue}
@@ -313,7 +314,7 @@ function MasterAttributeRow({ item, accessToken, onDelete, onUpdate }) {
                     fontSize: '13px',
                     borderRadius: 'var(--radius-sm)',
                     border: '1px solid var(--border-subtle)',
-                    backgroundColor: 'var(--bg-primary)',
+                    backgroundColor: '#ffffff',
                     color: 'var(--text-primary)',
                     outline: 'none',
                   }}
@@ -325,9 +326,9 @@ function MasterAttributeRow({ item, accessToken, onDelete, onUpdate }) {
 
               {/* Values list */}
               {isLoading ? (
-                <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>Cargando valores...</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Cargando valores...</div>
               ) : values.length === 0 ? (
-                <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', italic: 'true' }}>No hay valores guardados aún. Agregá el primero arriba.</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontStyle: 'italic' }}>No hay valores guardados aún. Agregá el primero arriba.</div>
               ) : (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                   {values.map((v) => (
@@ -337,25 +338,26 @@ function MasterAttributeRow({ item, accessToken, onDelete, onUpdate }) {
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '6px',
-                        padding: '5px 10px',
+                        padding: '6px 12px',
                         borderRadius: '6px',
-                        backgroundColor: 'var(--bg-primary)',
+                        backgroundColor: '#ffffff',
                         border: '1px solid var(--border-subtle)',
-                        fontSize: '12px',
+                        fontSize: '13px',
                         fontWeight: '600',
                         color: 'var(--text-primary)',
+                        boxShadow: 'var(--shadow-sm)',
                       }}
                     >
-                      <span style={{ color: 'var(--text-tertiary)', fontSize: '10px', fontFamily: 'monospace' }}>{v.code}</span>
+                      <span style={{ color: '#4f46e5', fontSize: '11px', fontFamily: 'monospace', fontWeight: '700' }}>{v.code}</span>
                       <span>{v.value}</span>
                       <button
                         type="button"
                         onClick={() => handleDeleteValue(v.id, v.value)}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', padding: '2px', display: 'flex' }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', padding: '2px', display: 'flex', marginLeft: '4px' }}
                         onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--status-danger)')}
                         onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-tertiary)')}
                       >
-                        <X size={13} />
+                        <X size={14} />
                       </button>
                     </div>
                   ))}
@@ -445,9 +447,21 @@ export function CatalogManager({ accessToken }) {
   const isTagTab = tab === 'brands' || tab === 'categories';
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '16px' }}>
-      {/* Header Tabs */}
-      <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
+    <div
+      className="apple-glass"
+      style={{
+        width: '100%',
+        flex: 1,
+        minHeight: '100%',
+        padding: '24px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '20px',
+        boxSizing: 'border-box',
+      }}
+    >
+      {/* Header Tabs con diseño de alta visibilidad */}
+      <div style={{ display: 'flex', gap: '10px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '14px' }}>
         {tabs.map((t) => {
           const Icon = t.icon;
           const isActive = tab === t.id;
@@ -463,13 +477,14 @@ export function CatalogManager({ accessToken }) {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                padding: '8px 16px',
+                padding: '10px 18px',
                 borderRadius: 'var(--radius-sm)',
-                border: 'none',
+                border: isActive ? '1px solid rgba(79, 70, 229, 0.4)' : '1px solid var(--border-subtle)',
                 fontSize: '14px',
-                fontWeight: '600',
-                backgroundColor: isActive ? 'rgba(79, 70, 229, 0.1)' : 'transparent',
-                color: isActive ? '#4f46e5' : 'var(--text-secondary)',
+                fontWeight: '700',
+                background: isActive ? 'linear-gradient(135deg, #4f46e5 0%, #312e81 100%)' : 'rgba(255, 255, 255, 0.6)',
+                color: isActive ? '#ffffff' : 'var(--text-primary)',
+                boxShadow: isActive ? '0 4px 14px rgba(79, 70, 229, 0.35)' : 'none',
                 cursor: 'pointer',
                 transition: 'all 150ms ease',
               }}
@@ -482,7 +497,7 @@ export function CatalogManager({ accessToken }) {
       </div>
 
       {/* Toolbar: Search + Create button */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px', width: '100%' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%' }}>
         {/* Search */}
         <div style={{ position: 'relative', flex: 1, display: 'flex', alignItems: 'center' }}>
           <Search size={16} style={{ position: 'absolute', left: '12px', color: 'var(--text-tertiary)', pointerEvents: 'none' }} />
@@ -544,21 +559,21 @@ export function CatalogManager({ accessToken }) {
       </div>
 
       {/* Table */}
-      <div style={{ flex: 1, borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--border-subtle)' }}>
+      <div style={{ flex: 1, borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--border-subtle)', backgroundColor: 'var(--bg-secondary)' }}>
         {isTagTab ? (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ backgroundColor: 'rgba(0,0,0,0.025)', borderBottom: '1px solid var(--border-subtle)' }}>
-                <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: '11px', fontWeight: '700', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>
+              <tr style={{ backgroundColor: 'rgba(79, 70, 229, 0.05)', borderBottom: '1px solid var(--border-subtle)' }}>
+                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: '700', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>
                   {tab === 'brands' ? 'Marca' : 'Slug'}
                 </th>
-                <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: '11px', fontWeight: '700', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: '700', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                   Nombre / Descripción
                 </th>
-                <th style={{ padding: '10px 16px', textAlign: 'center', fontSize: '11px', fontWeight: '700', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>
+                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '11px', fontWeight: '700', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>
                   Productos
                 </th>
-                <th style={{ padding: '10px 16px', textAlign: 'right', fontSize: '11px', fontWeight: '700', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '11px', fontWeight: '700', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                   Acciones
                 </th>
               </tr>
@@ -566,7 +581,7 @@ export function CatalogManager({ accessToken }) {
             <tbody>
               {(tab === 'brands' ? filteredBrands : filteredCategories).length === 0 ? (
                 <tr>
-                  <td colSpan={4} style={{ padding: '48px', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '14px' }}>
+                  <td colSpan={4} style={{ padding: '48px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '14px' }}>
                     {search
                       ? `Sin resultados para "${search}"`
                       : `No hay ${tab === 'brands' ? 'marcas' : 'categorías'} registradas. Creá la primera.`}
@@ -593,17 +608,17 @@ export function CatalogManager({ accessToken }) {
           // Master Attributes Table with expandable values drawer
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ backgroundColor: 'rgba(0,0,0,0.025)', borderBottom: '1px solid var(--border-subtle)' }}>
-                <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: '11px', fontWeight: '700', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>
+              <tr style={{ backgroundColor: 'rgba(79, 70, 229, 0.05)', borderBottom: '1px solid var(--border-subtle)' }}>
+                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: '700', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>
                   Código
                 </th>
-                <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: '11px', fontWeight: '700', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: '700', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                   Atributo / Descripción
                 </th>
-                <th style={{ padding: '10px 16px', textAlign: 'center', fontSize: '11px', fontWeight: '700', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>
+                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '11px', fontWeight: '700', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>
                   Valores Guardados
                 </th>
-                <th style={{ padding: '10px 16px', textAlign: 'right', fontSize: '11px', fontWeight: '700', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '11px', fontWeight: '700', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                   Acciones
                 </th>
               </tr>
@@ -611,7 +626,7 @@ export function CatalogManager({ accessToken }) {
             <tbody>
               {filteredAttributes.length === 0 ? (
                 <tr>
-                  <td colSpan={4} style={{ padding: '48px', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '14px' }}>
+                  <td colSpan={4} style={{ padding: '48px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '14px' }}>
                     {search ? `Sin resultados para "${search}"` : 'No hay atributos registrados. Creá el primero.'}
                   </td>
                 </tr>

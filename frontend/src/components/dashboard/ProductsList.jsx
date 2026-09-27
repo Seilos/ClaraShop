@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Search, Package, Trash2 } from 'lucide-react';
+import { Plus, Search, Package, Trash2, Tag, ShieldCheck, Layers } from 'lucide-react';
 import { Button } from '../ui/Button.jsx';
 import { useProductsList, useDeactivateProduct } from '../../hooks/useProducts.js';
 
@@ -12,7 +12,7 @@ export function ProductsList({ accessToken, onOpenCreateModal }) {
     if (!window.confirm(`¿Estás seguro de desactivar "${productName}"?`)) return;
     try {
       await deactivateProductMutation.mutateAsync(productId);
-    } catch (err) {
+    } catch {
       alert('Error al desactivar producto');
     }
   };
@@ -66,7 +66,7 @@ export function ProductsList({ accessToken, onOpenCreateModal }) {
           </p>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
           {filteredProducts.map((p) => (
             <div
               key={p.id}
@@ -134,18 +134,45 @@ export function ProductsList({ accessToken, onOpenCreateModal }) {
                     </div>
                   )}
                 </div>
+
+                {/* Chips de Atributos Maestros (Modelo, Color, Talla, Material, Garantía) */}
+                {(p.modelName || p.color || p.size || p.material || p.warrantyInfo) && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px' }}>
+                    {p.modelName && (
+                      <span style={{ fontSize: '10px', fontWeight: '600', padding: '2px 8px', borderRadius: '4px', backgroundColor: 'rgba(79, 70, 229, 0.08)', color: '#4f46e5', border: '1px solid rgba(79, 70, 229, 0.15)' }}>
+                        Mod: {p.modelName}
+                      </span>
+                    )}
+                    {p.color && (
+                      <span style={{ fontSize: '10px', fontWeight: '600', padding: '2px 8px', borderRadius: '4px', backgroundColor: 'rgba(0, 0, 0, 0.04)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}>
+                        Color: {p.color}
+                      </span>
+                    )}
+                    {p.size && (
+                      <span style={{ fontSize: '10px', fontWeight: '600', padding: '2px 8px', borderRadius: '4px', backgroundColor: 'rgba(0, 0, 0, 0.04)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}>
+                        Talla/Cap: {p.size}
+                      </span>
+                    )}
+                    {p.material && (
+                      <span style={{ fontSize: '10px', fontWeight: '600', padding: '2px 8px', borderRadius: '4px', backgroundColor: 'rgba(0, 0, 0, 0.04)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}>
+                        Material: {p.material}
+                      </span>
+                    )}
+                    {p.warrantyInfo && (
+                      <span style={{ fontSize: '10px', fontWeight: '600', padding: '2px 8px', borderRadius: '4px', backgroundColor: 'rgba(52, 199, 89, 0.1)', color: 'var(--status-success)', border: '1px solid rgba(52, 199, 89, 0.2)' }}>
+                        Garantía: {p.warrantyInfo}
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Pie de tarjeta con stock */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border-subtle)', paddingTop: '12px', marginTop: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border-subtle)', paddingTop: '12px', marginTop: '4px' }}>
                 <div style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Package size={14} />
                   <span>Stock: <strong>{p.stockQuantity}</strong> un.</span>
                 </div>
-
-                {p.modelName && (
-                  <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Mod: {p.modelName}</span>
-                )}
               </div>
             </div>
           ))}
@@ -154,4 +181,3 @@ export function ProductsList({ accessToken, onOpenCreateModal }) {
     </div>
   );
 }
-
