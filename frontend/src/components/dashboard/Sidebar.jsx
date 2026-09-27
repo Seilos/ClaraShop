@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings, Store, DollarSign, ChevronDown, ChevronRight, LogOut, Package, Layers } from 'lucide-react';
+import { Settings, Store, DollarSign, ChevronDown, ChevronRight, LogOut, Package, Layers, Palette } from 'lucide-react';
 
 export function Sidebar({ activeView, setActiveView, tenantName, onLogout }) {
   const [isConfigOpen, setIsConfigOpen] = useState(true);
@@ -131,6 +131,15 @@ export function Sidebar({ activeView, setActiveView, tenantName, onLogout }) {
               >
                 <DollarSign size={16} />
                 <span>Monedas & Tasa</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveView('styles')}
+                style={navItemStyle(activeView === 'styles')}
+              >
+                <Palette size={16} />
+                <span>Estilos de Tienda</span>
               </button>
             </div>
           )}

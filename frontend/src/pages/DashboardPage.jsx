@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { Sidebar } from '../components/dashboard/Sidebar.jsx';
 import { ProfileSettings } from '../components/dashboard/ProfileSettings.jsx';
 import { CurrencySettings } from '../components/dashboard/CurrencySettings.jsx';
+import { StyleSettings } from '../components/dashboard/StyleSettings.jsx';
 import { ProductsList } from '../components/dashboard/ProductsList.jsx';
 import { CatalogManager } from '../components/dashboard/CatalogManager.jsx';
 import { CreateProductModal } from '../components/dashboard/CreateProductModal.jsx';
 import { User } from 'lucide-react';
 
 export function DashboardPage({ user, accessToken, onLogout }) {
-  const [activeView, setActiveView] = useState('products'); // 'products' | 'catalog' | 'profile' | 'currencies'
+  const [activeView, setActiveView] = useState('products'); // 'products' | 'catalog' | 'profile' | 'currencies' | 'styles'
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const getHeaderTitle = () => {
@@ -21,6 +22,8 @@ export function DashboardPage({ user, accessToken, onLogout }) {
         return 'Configuración > Perfil de Tienda';
       case 'currencies':
         return 'Configuración > Monedas & Tasa de Cambio';
+      case 'styles':
+        return 'Configuración > Estilos de Tienda';
       default:
         return 'Panel de Control';
     }
@@ -97,6 +100,7 @@ export function DashboardPage({ user, accessToken, onLogout }) {
           {activeView === 'catalog' && <CatalogManager accessToken={accessToken} />}
           {activeView === 'profile' && <ProfileSettings accessToken={accessToken} />}
           {activeView === 'currencies' && <CurrencySettings accessToken={accessToken} />}
+          {activeView === 'styles' && <StyleSettings />}
         </section>
       </main>
 
