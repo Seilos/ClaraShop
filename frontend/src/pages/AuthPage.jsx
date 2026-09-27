@@ -204,53 +204,22 @@ export function AuthPage({ onAuthSuccess }) {
               </p>
             </div>
 
-            {/* Card con glassmorphism */}
+            {/* Card con Glassmorphism Esmerilado de Alta Luminosidad y Contraste */}
             <div
               style={{
                 position: 'relative',
                 overflow: 'hidden',
                 padding: '32px 28px',
                 borderRadius: '24px',
-                boxShadow:
-                  '0 20px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.35)',
-                border: '1px solid rgba(255, 255, 255, 0.25)',
+                background: 'linear-gradient(145deg, rgba(255, 255, 255, 0.86) 0%, rgba(235, 243, 255, 0.78) 100%)',
+                backdropFilter: 'blur(30px) saturate(200%)',
+                WebkitBackdropFilter: 'blur(30px) saturate(200%)',
+                boxShadow: '0 25px 60px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.85)',
+                border: '1px solid rgba(255, 255, 255, 0.6)',
                 boxSizing: 'border-box',
                 width: '100%',
               }}
             >
-              {/* Capa imagen de fondo (hero extendida para tapar bordes borrosos) */}
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '-12px',
-                  left: '-12px',
-                  right: '-12px',
-                  bottom: '-12px',
-                  backgroundImage: 'url(/clarashop_hero.jpg)',
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  opacity: 0.55,
-                  filter: 'blur(4px) saturate(160%)',
-                  pointerEvents: 'none',
-                  zIndex: 0,
-                }}
-              />
-              {/* Capa glass translúcida */}
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  background:
-                    'linear-gradient(145deg, rgba(255,255,255,0.78) 0%, rgba(230,240,255,0.86) 100%)',
-                  backdropFilter: 'blur(18px)',
-                  WebkitBackdropFilter: 'blur(18px)',
-                  pointerEvents: 'none',
-                  zIndex: 0,
-                }}
-              />
 
               {/* Contenido sobre la card con transición suave */}
               <div style={{ position: 'relative', zIndex: 1 }}>
@@ -273,20 +242,24 @@ export function AuthPage({ onAuthSuccess }) {
 
                 {successMessage && activeTab === 'login' && (
                   <div
+                    className="animate-view-transition"
                     style={{
-                      padding: '12px 14px',
-                      borderRadius: '8px',
-                      backgroundColor: 'rgba(52, 199, 89, 0.15)',
-                      border: '1px solid rgba(52, 199, 89, 0.4)',
-                      color: '#1d7331',
+                      padding: '12px 16px',
+                      borderRadius: '12px',
+                      background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.14) 0%, rgba(5, 150, 105, 0.22) 100%)',
+                      border: '1px solid rgba(16, 185, 129, 0.4)',
+                      boxShadow: '0 4px 14px rgba(16, 185, 129, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.6)',
+                      color: '#064e3b',
                       fontSize: '13px',
-                      marginBottom: '16px',
+                      fontWeight: '600',
+                      marginBottom: '18px',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '8px',
+                      gap: '10px',
+                      backdropFilter: 'blur(8px)',
                     }}
                   >
-                    <ShieldCheck size={16} />
+                    <ShieldCheck size={18} color="#059669" />
                     <span>{successMessage}</span>
                   </div>
                 )}

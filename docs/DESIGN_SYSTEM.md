@@ -114,6 +114,36 @@ Efecto de fundido y elevación al alternar entre formularios o pestañas.
 
 ---
 
+### E. Banner de Éxito Esmeralda Glass (`.glass-alert-success`)
+
+Usado para confirmaciones y respuestas exitosas de operaciones (ej: creación de tienda, guardado de configuración).
+
+```jsx
+<div
+  className="animate-view-transition"
+  style={{
+    padding: '12px 16px',
+    borderRadius: '12px',
+    background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.14) 0%, rgba(5, 150, 105, 0.22) 100%)',
+    border: '1px solid rgba(16, 185, 129, 0.4)',
+    boxShadow: '0 4px 14px rgba(16, 185, 129, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.6)',
+    color: '#064e3b',
+    fontSize: '13px',
+    fontWeight: '600',
+    marginBottom: '18px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    backdropFilter: 'blur(8px)',
+  }}
+>
+  <ShieldCheck size={18} color="#059669" />
+  <span>¡Operación realizada exitosamente!</span>
+</div>
+```
+
+---
+
 ## 4. Convención de Estilos e Importación
 
 * **Tokens CSS globales**: Ubicados en [`frontend/src/styles/tokens.css`](file:///c:/Users/I5/Documents/CODIGO/Tienda%20Duilio/frontend/src/styles/tokens.css).
