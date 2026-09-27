@@ -103,7 +103,7 @@ export function CurrencySettings({ accessToken }) {
           style={{
             padding: '16px',
             borderRadius: 'var(--radius-sm)',
-            backgroundColor: 'var(--bg-primary)',
+            backgroundColor: 'rgba(255, 255, 255, 0.45)',
             border: '1px solid var(--border-subtle)',
             marginTop: '16px',
             marginBottom: '24px',

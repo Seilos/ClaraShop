@@ -111,7 +111,7 @@ export function CatalogManager({ accessToken }) {
 
       {/* List Grid */}
       {currentList.length === 0 ? (
-        <div style={{ padding: '32px', textAlign: 'center', backgroundColor: 'var(--bg-primary)', borderRadius: 'var(--radius-md)' }}>
+        <div style={{ padding: '32px', textAlign: 'center', backgroundColor: 'rgba(255, 255, 255, 0.45)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
             No hay {tab === 'brands' ? 'marcas' : tab === 'categories' ? 'categorías' : 'atributos'} registrados.
           </p>

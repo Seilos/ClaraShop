@@ -58,7 +58,7 @@ export function ProductsList({ accessToken, onOpenCreateModal }) {
           Error al cargar los productos.
         </div>
       ) : filteredProducts.length === 0 ? (
-        <div style={{ padding: '60px 40px', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--bg-primary)', borderRadius: 'var(--radius-md)' }}>
+        <div style={{ padding: '60px 40px', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255, 255, 255, 0.45)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
           <Package size={48} style={{ color: 'var(--text-tertiary)', marginBottom: '12px' }} />
           <h4 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '4px' }}>No hay productos en el catálogo</h4>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
@@ -119,7 +119,7 @@ export function ProductsList({ accessToken, onOpenCreateModal }) {
                 </p>
 
                 {/* Precios Multi-nivel USD */}
-                <div style={{ padding: '10px 12px', backgroundColor: 'var(--bg-primary)', borderRadius: 'var(--radius-sm)', marginBottom: '12px' }}>
+                <div style={{ padding: '10px 12px', backgroundColor: 'rgba(255, 255, 255, 0.5)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', marginBottom: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}>
                     <span style={{ color: 'var(--text-secondary)' }}>Precio 1 (Minorista):</span>
                     <strong style={{ color: 'var(--accent-primary)' }}>$ {p.priceUsd1} USD</strong>
