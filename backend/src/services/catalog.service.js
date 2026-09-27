@@ -1,5 +1,5 @@
 import { db } from '../db/index.js';
-import { brands, categories, customAttributes, products } from '../db/schema.js';
+import { brands, categories, customAttributes, productAttributes, attributeValues, products } from '../db/schema.js';
 import { eq, and, sql, count } from 'drizzle-orm';
 import { logger } from '../utils/logger.js';
 import { ProductService } from './product.service.js';
@@ -12,7 +12,7 @@ export class BrandService {
   /**
    * Create a new brand for a tenant
    * @param {string} tenantId
-   * @param {{ name: string, logoUrl?: string }} data
+   * @param {{ name: string, description?: string, logoUrl?: string }} data
    */
   static async createBrand(tenantId, data) {
     const id = ProductService.generateUUIDv7();
@@ -62,7 +62,7 @@ export class BrandService {
   }
 
   /**
-   * Update a brand (name and/or logoUrl)
+   * Update a brand (name, description, logoUrl)
    */
   static async updateBrand(tenantId, brandId, data) {
     const existing = await this.getBrandById(tenantId, brandId);
@@ -106,23 +106,38 @@ export class BrandService {
 
 export class CategoryService {
   /**
-   * Create a new category, auto-generates slug from name
+   * Generate slug from category name
+   */
+  static generateSlug(name) {
+    return name
+      .toLowerCase()
+      .trim()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/[\s-]+/g, '-');
+  }
+
+  /**
+   * Create a new category for a tenant
    */
   static async createCategory(tenantId, data) {
     const id = ProductService.generateUUIDv7();
-    const slug = data.name
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9-]/g, '-')
-      .replace(/-+/g, '-');
-
-    await db.insert(categories).values({ id, tenantId, name: data.name, description: data.description ?? null, slug });
+    const slug = data.slug || this.generateSlug(data.name);
+    await db.insert(categories).values({
+      id,
+      tenantId,
+      name: data.name,
+      description: data.description ?? null,
+      slug,
+    });
     logger.info({ tenantId, categoryId: id, name: data.name, msg: 'Category created' });
     return this.getCategoryById(tenantId, id);
   }
 
-  /** List all categories for a tenant with product count */
+  /**
+   * List all categories for a tenant with product count
+   */
   static async listCategories(tenantId) {
     const rows = await db
       .select({
@@ -138,6 +153,7 @@ export class CategoryService {
       .leftJoin(products, and(eq(products.categoryId, categories.id), eq(products.tenantId, tenantId), eq(products.isActive, 1)))
       .where(eq(categories.tenantId, tenantId))
       .groupBy(categories.id)
+      .orderBy(categories.name)
       .all();
     return rows;
   }
@@ -154,7 +170,7 @@ export class CategoryService {
   }
 
   /**
-   * Update a category name (slug regenerated from new name)
+   * Update a category (name, description, slug)
    */
   static async updateCategory(tenantId, categoryId, data) {
     const existing = await this.getCategoryById(tenantId, categoryId);
@@ -164,16 +180,13 @@ export class CategoryService {
       throw err;
     }
     const updatePayload = {};
-    if (data.name) {
+    if (data.name !== undefined) {
       updatePayload.name = data.name;
-      updatePayload.slug = data.name
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^a-z0-9-]/g, '-')
-        .replace(/-+/g, '-');
+      if (!data.slug) updatePayload.slug = this.generateSlug(data.name);
     }
     if (data.description !== undefined) updatePayload.description = data.description;
+    if (data.slug !== undefined) updatePayload.slug = data.slug;
+
     await db
       .update(categories)
       .set(updatePayload)
@@ -184,7 +197,6 @@ export class CategoryService {
 
   /**
    * Delete a category permanently
-   * NOTE: products referencing this category will have categoryId set to NULL (ON DELETE SET NULL)
    */
   static async deleteCategory(tenantId, categoryId) {
     const existing = await this.getCategoryById(tenantId, categoryId);
@@ -200,40 +212,114 @@ export class CategoryService {
 }
 
 // ---------------------------------------------------------------------------
-// Custom Attributes
+// Master Attributes & Attribute Values (EAV Dynamic Pattern)
 // ---------------------------------------------------------------------------
 
 export class AttributeService {
   /**
-   * Create a new custom attribute definition for tenant (e.g. "Voltage", "Season")
+   * Default system attributes to seed per tenant if empty
+   */
+  static DEFAULT_ATTRIBUTES = [
+    { name: 'Modelo', code: 'ATT-MOD', description: 'Modelo o versión del producto (ej. Pro Max, S24 Ultra)' },
+    { name: 'Color', code: 'ATT-COL', description: 'Color o acabado del producto (ej. Titanio Natural, Negro)' },
+    { name: 'Talla / Almacenamiento', code: 'ATT-TAL', description: 'Talla, tamaño o almacenamiento (ej. 256GB, XL, 42)' },
+    { name: 'Material', code: 'ATT-MAT', description: 'Materiales principales de construcción (ej. Titanio & Cristal, Algodón)' },
+    { name: 'Garantía', code: 'ATT-GAR', description: 'Tiempo y tipo de garantía oficial (ej. 12 Meses Oficial)' },
+  ];
+
+  /**
+   * Ensure default system attributes exist for tenant
+   */
+  static async ensureDefaultAttributes(tenantId) {
+    const existing = await db.select().from(productAttributes).where(eq(productAttributes.tenantId, tenantId)).all();
+    if (existing.length === 0) {
+      for (const attr of this.DEFAULT_ATTRIBUTES) {
+        const id = ProductService.generateUUIDv7();
+        await db.insert(productAttributes).values({
+          id,
+          tenantId,
+          code: attr.code,
+          name: attr.name,
+          description: attr.description,
+          isSystem: true,
+        });
+      }
+    }
+  }
+
+  /**
+   * List all master attributes for a tenant, with counts of values
+   */
+  static async listAttributes(tenantId) {
+    await this.ensureDefaultAttributes(tenantId);
+    const rows = await db
+      .select({
+        id: productAttributes.id,
+        tenantId: productAttributes.tenantId,
+        code: productAttributes.code,
+        name: productAttributes.name,
+        description: productAttributes.description,
+        isSystem: productAttributes.isSystem,
+        createdAt: productAttributes.createdAt,
+        valueCount: sql`COUNT(${attributeValues.id})`.as('valueCount'),
+      })
+      .from(productAttributes)
+      .leftJoin(attributeValues, and(eq(attributeValues.attributeId, productAttributes.id), eq(attributeValues.tenantId, tenantId)))
+      .where(eq(productAttributes.tenantId, tenantId))
+      .groupBy(productAttributes.id)
+      .orderBy(productAttributes.code, productAttributes.name)
+      .all();
+    return rows;
+  }
+
+  /**
+   * Create a new master attribute definition
    */
   static async createAttribute(tenantId, data) {
     const id = ProductService.generateUUIDv7();
-    await db.insert(customAttributes).values({ id, tenantId, name: data.name });
-    logger.info({ tenantId, attributeId: id, name: data.name, msg: 'Custom attribute created' });
+    const countAttr = await db.select({ count: count() }).from(productAttributes).where(eq(productAttributes.tenantId, tenantId)).get();
+    const nextNum = (countAttr?.count || 0) + 1;
+    const code = data.code || `ATT-${String(nextNum).padStart(3, '0')}`;
+
+    await db.insert(productAttributes).values({
+      id,
+      tenantId,
+      code,
+      name: data.name,
+      description: data.description ?? null,
+      isSystem: false,
+    });
+    logger.info({ tenantId, attributeId: id, name: data.name, code, msg: 'Master attribute created' });
     return this.getAttributeById(tenantId, id);
   }
 
-  /** List all custom attributes for a tenant */
-  static async listAttributes(tenantId) {
-    return db.select().from(customAttributes).where(eq(customAttributes.tenantId, tenantId)).all();
-  }
-
-  /**
-   * Get a single attribute by ID (scoped to tenant)
-   */
+  /** Get single attribute by ID */
   static async getAttributeById(tenantId, attributeId) {
     return db
       .select()
-      .from(customAttributes)
-      .where(and(eq(customAttributes.id, attributeId), eq(customAttributes.tenantId, tenantId)))
+      .from(productAttributes)
+      .where(and(eq(productAttributes.id, attributeId), eq(productAttributes.tenantId, tenantId)))
       .get() ?? null;
   }
 
-  /**
-   * Delete a custom attribute definition
-   * NOTE: associated productAttributeValues will cascade delete (ON DELETE CASCADE)
-   */
+  /** Update master attribute */
+  static async updateAttribute(tenantId, attributeId, data) {
+    const existing = await this.getAttributeById(tenantId, attributeId);
+    if (!existing) {
+      const err = new Error('Attribute not found');
+      err.statusCode = 404;
+      throw err;
+    }
+    const updatePayload = {};
+    if (data.name !== undefined) updatePayload.name = data.name;
+    if (data.description !== undefined) updatePayload.description = data.description;
+    if (data.code !== undefined) updatePayload.code = data.code;
+
+    await db.update(productAttributes).set(updatePayload).where(and(eq(productAttributes.id, attributeId), eq(productAttributes.tenantId, tenantId)));
+    return this.getAttributeById(tenantId, attributeId);
+  }
+
+  /** Delete master attribute */
   static async deleteAttribute(tenantId, attributeId) {
     const existing = await this.getAttributeById(tenantId, attributeId);
     if (!existing) {
@@ -241,10 +327,119 @@ export class AttributeService {
       err.statusCode = 404;
       throw err;
     }
-    await db
-      .delete(customAttributes)
-      .where(and(eq(customAttributes.id, attributeId), eq(customAttributes.tenantId, tenantId)));
-    logger.info({ tenantId, attributeId, msg: 'Custom attribute deleted' });
+    await db.delete(productAttributes).where(and(eq(productAttributes.id, attributeId), eq(productAttributes.tenantId, tenantId)));
+    return true;
+  }
+
+  // -------------------------------------------------------------------------
+  // Attribute Values
+  // -------------------------------------------------------------------------
+
+  /**
+   * List all values for a specific attribute (e.g., all Colors or all Sizes)
+   */
+  static async listAttributeValues(tenantId, attributeId) {
+    return db
+      .select()
+      .from(attributeValues)
+      .where(and(eq(attributeValues.tenantId, tenantId), eq(attributeValues.attributeId, attributeId)))
+      .orderBy(attributeValues.value)
+      .all();
+  }
+
+  /**
+   * List ALL values for ALL attributes of a tenant (grouped or flattened for fast catalog lookup)
+   */
+  static async listAllAttributeValues(tenantId) {
+    await this.ensureDefaultAttributes(tenantId);
+    return db
+      .select({
+        id: attributeValues.id,
+        attributeId: attributeValues.attributeId,
+        attributeName: productAttributes.name,
+        attributeCode: productAttributes.code,
+        code: attributeValues.code,
+        value: attributeValues.value,
+        description: attributeValues.description,
+        createdAt: attributeValues.createdAt,
+      })
+      .from(attributeValues)
+      .innerJoin(productAttributes, eq(productAttributes.id, attributeValues.attributeId))
+      .where(eq(attributeValues.tenantId, tenantId))
+      .orderBy(productAttributes.name, attributeValues.value)
+      .all();
+  }
+
+  /**
+   * Create a new value for a master attribute (e.g., "Titanio Natural" for Color)
+   */
+  static async createAttributeValue(tenantId, attributeId, data) {
+    const attr = await this.getAttributeById(tenantId, attributeId);
+    if (!attr) {
+      const err = new Error('Parent attribute not found');
+      err.statusCode = 404;
+      throw err;
+    }
+
+    const id = ProductService.generateUUIDv7();
+    const countVal = await db
+      .select({ count: count() })
+      .from(attributeValues)
+      .where(and(eq(attributeValues.tenantId, tenantId), eq(attributeValues.attributeId, attributeId)))
+      .get();
+    const nextNum = (countVal?.count || 0) + 1;
+    
+    // Prefix based on attribute code if available (e.g. COL-001, TAL-001, VAL-001)
+    const prefix = attr.code ? attr.code.replace('ATT-', '') : 'VAL';
+    const code = data.code || `${prefix}-${String(nextNum).padStart(3, '0')}`;
+
+    await db.insert(attributeValues).values({
+      id,
+      tenantId,
+      attributeId,
+      code,
+      value: data.value,
+      description: data.description ?? null,
+    });
+    logger.info({ tenantId, attributeId, valueId: id, value: data.value, code, msg: 'Attribute value created' });
+    return this.getAttributeValueById(tenantId, id);
+  }
+
+  /** Get single attribute value by ID */
+  static async getAttributeValueById(tenantId, valueId) {
+    return db
+      .select()
+      .from(attributeValues)
+      .where(and(eq(attributeValues.id, valueId), eq(attributeValues.tenantId, tenantId)))
+      .get() ?? null;
+  }
+
+  /** Update attribute value */
+  static async updateAttributeValue(tenantId, valueId, data) {
+    const existing = await this.getAttributeValueById(tenantId, valueId);
+    if (!existing) {
+      const err = new Error('Attribute value not found');
+      err.statusCode = 404;
+      throw err;
+    }
+    const updatePayload = {};
+    if (data.value !== undefined) updatePayload.value = data.value;
+    if (data.description !== undefined) updatePayload.description = data.description;
+    if (data.code !== undefined) updatePayload.code = data.code;
+
+    await db.update(attributeValues).set(updatePayload).where(and(eq(attributeValues.id, valueId), eq(attributeValues.tenantId, tenantId)));
+    return this.getAttributeValueById(tenantId, valueId);
+  }
+
+  /** Delete attribute value */
+  static async deleteAttributeValue(tenantId, valueId) {
+    const existing = await this.getAttributeValueById(tenantId, valueId);
+    if (!existing) {
+      const err = new Error('Attribute value not found');
+      err.statusCode = 404;
+      throw err;
+    }
+    await db.delete(attributeValues).where(and(eq(attributeValues.id, valueId), eq(attributeValues.tenantId, tenantId)));
     return true;
   }
 }

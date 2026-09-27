@@ -14,6 +14,8 @@ export function Input({
   icon: Icon,
   required = false,
   autoComplete,
+  list,
+  ...props
 }) {
   return (
     <div className="input-group" style={{ marginBottom: '16px' }}>
@@ -57,6 +59,8 @@ export function Input({
           onChange={onChange}
           placeholder={placeholder}
           autoComplete={autoComplete}
+          list={list}
+          {...props}
           style={{
             width: '100%',
             padding: Icon ? '12px 14px 12px 40px' : '12px 14px',

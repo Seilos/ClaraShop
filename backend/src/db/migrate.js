@@ -100,6 +100,28 @@ export async function runMigrations() {
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS product_attributes (
+      id TEXT PRIMARY KEY,
+      tenant_id TEXT NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+      code TEXT NOT NULL,
+      name TEXT NOT NULL,
+      description TEXT,
+      is_system INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS attribute_values (
+      id TEXT PRIMARY KEY,
+      tenant_id TEXT NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+      attribute_id TEXT NOT NULL REFERENCES product_attributes(id) ON DELETE CASCADE,
+      code TEXT NOT NULL,
+      value TEXT NOT NULL,
+      description TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE TABLE IF NOT EXISTS products (
       id TEXT PRIMARY KEY,
       tenant_id TEXT NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
@@ -178,7 +200,6 @@ export async function runMigrations() {
   const additiveMigrations = [
     `ALTER TABLE brands ADD COLUMN description TEXT`,
     `ALTER TABLE categories ADD COLUMN description TEXT`,
-    // brand_categories is created via CREATE TABLE IF NOT EXISTS above — no ALTER needed
   ];
 
   for (const sql of additiveMigrations) {

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Tag, Layers, Sliders, Plus, Trash2, Search, Package, Edit2, Check, X } from 'lucide-react';
+import { Tag, Layers, Sliders, Plus, Trash2, Search, Package, Edit2, Check, X, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 import { Button } from '../ui/Button.jsx';
 import { CreateBrandModal } from './CreateBrandModal.jsx';
 import { CreateCategoryModal } from './CreateCategoryModal.jsx';
@@ -12,10 +12,14 @@ import {
   useUpdateCategory,
   useAttributes,
   useCreateAttribute,
+  useUpdateAttribute,
   useDeleteAttribute,
+  useAttributeValues,
+  useCreateAttributeValue,
+  useDeleteAttributeValue,
 } from '../../hooks/useCatalog.js';
 
-// ─── Inline editable row ─────────────────────────────────────────────────────
+// ─── Inline editable row for Brands and Categories ───────────────────────────
 function EditableRow({ item, onSave, onDelete, codeLabel }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(item.name);
@@ -180,27 +184,188 @@ function EditableRow({ item, onSave, onDelete, codeLabel }) {
   );
 }
 
-// ─── Attributes tab (simple list, no description/count) ──────────────────────
-function AttributeRow({ item, onDelete }) {
+// ─── Master Attribute Row (Expandable with Values Management) ─────────────────
+function MasterAttributeRow({ item, accessToken, onDelete, onUpdate }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [newValue, setNewValue] = useState('');
+  const [newDesc, setNewDesc] = useState('');
+
+  // Values query & mutations
+  const { data: values = [], isLoading } = useAttributeValues(accessToken, item.id);
+  const createValue = useCreateAttributeValue(accessToken);
+  const deleteValue = useDeleteAttributeValue(accessToken);
+
+  const handleAddValue = async (e) => {
+    e.preventDefault();
+    if (!newValue.trim()) return;
+    try {
+      await createValue.mutateAsync({
+        attributeId: item.id,
+        value: newValue.trim(),
+        description: newDesc.trim() || null,
+      });
+      setNewValue('');
+      setNewDesc('');
+    } catch {
+      alert('Error al crear valor de atributo');
+    }
+  };
+
+  const handleDeleteValue = async (valId, valName) => {
+    if (!window.confirm(`¿Eliminar el valor "${valName}"?`)) return;
+    try {
+      await deleteValue.mutateAsync(valId);
+    } catch {
+      alert('Error al eliminar valor');
+    }
+  };
+
   return (
-    <tr
-      style={{ borderBottom: '1px solid var(--border-subtle)' }}
-      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.02)')}
-      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-    >
-      <td style={{ padding: '12px 16px', fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>{item.name}</td>
-      <td style={{ padding: '12px 16px', textAlign: 'right' }}>
-        <button
-          type="button"
-          onClick={() => onDelete(item.id, item.name)}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)' }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--status-danger)')}
-          onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-tertiary)')}
-        >
-          <Trash2 size={15} />
-        </button>
-      </td>
-    </tr>
+    <>
+      <tr
+        style={{
+          borderBottom: '1px solid var(--border-subtle)',
+          backgroundColor: isExpanded ? 'rgba(79, 70, 229, 0.02)' : 'transparent',
+          transition: 'background 150ms ease',
+        }}
+      >
+        {/* Code */}
+        <td style={{ padding: '12px 16px', fontSize: '12px', fontWeight: '700', color: 'var(--text-tertiary)', fontFamily: 'monospace' }}>
+          {item.code}
+        </td>
+
+        {/* Name & description */}
+        <td style={{ padding: '12px 16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>{item.name}</span>
+            {item.isSystem && (
+              <span style={{ fontSize: '10px', fontWeight: '700', padding: '2px 6px', borderRadius: '4px', backgroundColor: 'rgba(79, 70, 229, 0.1)', color: '#4f46e5' }}>
+                Sistema
+              </span>
+            )}
+          </div>
+          {item.description && (
+            <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '2px' }}>{item.description}</div>
+          )}
+        </td>
+
+        {/* Values count + expand toggle */}
+        <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+          <button
+            type="button"
+            onClick={() => setIsExpanded(!isExpanded)}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '12px',
+              fontWeight: '600',
+              color: '#4f46e5',
+              padding: '4px 10px',
+              borderRadius: 'var(--radius-full)',
+              backgroundColor: 'rgba(79, 70, 229, 0.08)',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            <span>{item.valueCount || 0} valores</span>
+            {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          </button>
+        </td>
+
+        {/* Actions */}
+        <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+          {!item.isSystem && (
+            <button
+              type="button"
+              onClick={() => onDelete(item.id, item.name)}
+              title="Eliminar atributo maestro"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', padding: '4px' }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--status-danger)')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-tertiary)')}
+            >
+              <Trash2 size={15} />
+            </button>
+          )}
+        </td>
+      </tr>
+
+      {/* Expanded drawer for attribute values */}
+      {isExpanded && (
+        <tr>
+          <td colSpan={4} style={{ padding: '0 16px 16px 48px', backgroundColor: 'rgba(79, 70, 229, 0.02)', borderBottom: '1px solid var(--border-subtle)' }}>
+            <div style={{ padding: '14px', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(79, 70, 229, 0.15)', backgroundColor: 'var(--bg-secondary)' }}>
+              <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Sparkles size={13} style={{ color: '#4f46e5' }} />
+                Valores Maestros para {item.name}
+              </div>
+
+              {/* Form to add new value */}
+              <form onSubmit={handleAddValue} style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                <input
+                  type="text"
+                  value={newValue}
+                  onChange={(e) => setNewValue(e.target.value)}
+                  placeholder={`Nuevo valor para ${item.name} (ej. Titanio Natural)...`}
+                  style={{
+                    flex: 1,
+                    padding: '8px 12px',
+                    fontSize: '13px',
+                    borderRadius: 'var(--radius-sm)',
+                    border: '1px solid var(--border-subtle)',
+                    backgroundColor: 'var(--bg-primary)',
+                    color: 'var(--text-primary)',
+                    outline: 'none',
+                  }}
+                />
+                <Button type="submit" variant="primary" icon={Plus} isLoading={createValue.isPending}>
+                  Agregar Valor
+                </Button>
+              </form>
+
+              {/* Values list */}
+              {isLoading ? (
+                <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>Cargando valores...</div>
+              ) : values.length === 0 ? (
+                <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', italic: 'true' }}>No hay valores guardados aún. Agregá el primero arriba.</div>
+              ) : (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {values.map((v) => (
+                    <div
+                      key={v.id}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '5px 10px',
+                        borderRadius: '6px',
+                        backgroundColor: 'var(--bg-primary)',
+                        border: '1px solid var(--border-subtle)',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        color: 'var(--text-primary)',
+                      }}
+                    >
+                      <span style={{ color: 'var(--text-tertiary)', fontSize: '10px', fontFamily: 'monospace' }}>{v.code}</span>
+                      <span>{v.value}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteValue(v.id, v.value)}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', padding: '2px', display: 'flex' }}
+                        onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--status-danger)')}
+                        onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-tertiary)')}
+                      >
+                        <X size={13} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </td>
+        </tr>
+      )}
+    </>
   );
 }
 
@@ -213,6 +378,7 @@ export function CatalogManager({ accessToken }) {
 
   // Attribute quick-add
   const [newAttrName, setNewAttrName] = useState('');
+  const [newAttrDesc, setNewAttrDesc] = useState('');
 
   // Queries
   const { data: brands = [] } = useBrands(accessToken);
@@ -225,6 +391,7 @@ export function CatalogManager({ accessToken }) {
   const updateCategory = useUpdateCategory(accessToken);
   const deleteCategory = useDeleteCategory(accessToken);
   const createAttribute = useCreateAttribute(accessToken);
+  const updateAttribute = useUpdateAttribute(accessToken);
   const deleteAttribute = useDeleteAttribute(accessToken);
 
   const handleDelete = async (id, name, type) => {
@@ -242,61 +409,67 @@ export function CatalogManager({ accessToken }) {
     e.preventDefault();
     if (!newAttrName.trim()) return;
     try {
-      await createAttribute.mutateAsync({ name: newAttrName });
+      await createAttribute.mutateAsync({ name: newAttrName.trim(), description: newAttrDesc.trim() || null });
       setNewAttrName('');
+      setNewAttrDesc('');
     } catch (err) {
       alert(err.response?.data?.error?.message || 'Error al crear atributo');
     }
   };
 
   // Filtered lists
-  const filteredBrands = useMemo(
-    () => brands.filter((b) => b.name.toLowerCase().includes(search.toLowerCase())),
-    [brands, search]
-  );
-  const filteredCategories = useMemo(
-    () => categories.filter((c) => c.name.toLowerCase().includes(search.toLowerCase())),
-    [categories, search]
-  );
-  const filteredAttributes = useMemo(
-    () => attributes.filter((a) => a.name.toLowerCase().includes(search.toLowerCase())),
-    [attributes, search]
-  );
+  const filteredBrands = useMemo(() => {
+    if (!search.trim()) return brands;
+    const q = search.toLowerCase();
+    return brands.filter((b) => b.name.toLowerCase().includes(q) || (b.description && b.description.toLowerCase().includes(q)));
+  }, [brands, search]);
+
+  const filteredCategories = useMemo(() => {
+    if (!search.trim()) return categories;
+    const q = search.toLowerCase();
+    return categories.filter((c) => c.name.toLowerCase().includes(q) || (c.description && c.description.toLowerCase().includes(q)) || c.slug.toLowerCase().includes(q));
+  }, [categories, search]);
+
+  const filteredAttributes = useMemo(() => {
+    if (!search.trim()) return attributes;
+    const q = search.toLowerCase();
+    return attributes.filter((a) => a.name.toLowerCase().includes(q) || (a.description && a.description.toLowerCase().includes(q)) || (a.code && a.code.toLowerCase().includes(q)));
+  }, [attributes, search]);
 
   const tabs = [
-    { key: 'brands', label: 'Marcas', icon: Tag, count: brands.length },
-    { key: 'categories', label: 'Categorías', icon: Layers, count: categories.length },
-    { key: 'attributes', label: 'Atributos', icon: Sliders, count: attributes.length },
+    { id: 'brands', label: 'Marcas', icon: Tag, count: brands.length },
+    { id: 'categories', label: 'Categorías', icon: Layers, count: categories.length },
+    { id: 'attributes', label: 'Atributos & Valores', icon: Sliders, count: attributes.length },
   ];
 
   const isTagTab = tab === 'brands' || tab === 'categories';
 
   return (
-    <div
-      className="apple-glass"
-      style={{ width: '100%', flex: 1, minHeight: '100%', padding: '24px', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}
-    >
-      {/* Tabs */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '16px' }}>
+      {/* Header Tabs */}
+      <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
         {tabs.map((t) => {
           const Icon = t.icon;
-          const isActive = tab === t.key;
+          const isActive = tab === t.id;
           return (
             <button
-              key={t.key}
+              key={t.id}
               type="button"
-              onClick={() => { setTab(t.key); setSearch(''); }}
+              onClick={() => {
+                setTab(t.id);
+                setSearch('');
+              }}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
                 padding: '8px 16px',
-                fontSize: '13px',
-                fontWeight: isActive ? '600' : '500',
                 borderRadius: 'var(--radius-sm)',
-                color: isActive ? '#4f46e5' : 'var(--text-secondary)',
-                backgroundColor: isActive ? 'rgba(79, 70, 229, 0.08)' : 'transparent',
                 border: 'none',
+                fontSize: '14px',
+                fontWeight: '600',
+                backgroundColor: isActive ? 'rgba(79, 70, 229, 0.1)' : 'transparent',
+                color: isActive ? '#4f46e5' : 'var(--text-secondary)',
                 cursor: 'pointer',
                 transition: 'all 150ms ease',
               }}
@@ -309,7 +482,7 @@ export function CatalogManager({ accessToken }) {
       </div>
 
       {/* Toolbar: Search + Create button */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', width: '100%' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px', width: '100%' }}>
         {/* Search */}
         <div style={{ position: 'relative', flex: 1, display: 'flex', alignItems: 'center' }}>
           <Search size={16} style={{ position: 'absolute', left: '12px', color: 'var(--text-tertiary)', pointerEvents: 'none' }} />
@@ -333,7 +506,7 @@ export function CatalogManager({ accessToken }) {
           />
         </div>
 
-        {/* Create button — brands & categories open modal; attributes use inline form */}
+        {/* Create button */}
         {tab === 'brands' && (
           <Button variant="primary" icon={Plus} onClick={() => setIsBrandModalOpen(true)}>
             Nueva Marca
@@ -350,7 +523,7 @@ export function CatalogManager({ accessToken }) {
               type="text"
               value={newAttrName}
               onChange={(e) => setNewAttrName(e.target.value)}
-              placeholder="Nombre del atributo..."
+              placeholder="Nombre del atributo (ej. Voltaje)..."
               style={{
                 padding: '10px 14px',
                 fontSize: '14px',
@@ -364,7 +537,7 @@ export function CatalogManager({ accessToken }) {
               }}
             />
             <Button type="submit" variant="primary" icon={Plus} isLoading={createAttribute.isPending}>
-              Agregar
+              Crear Atributo
             </Button>
           </form>
         )}
@@ -417,12 +590,18 @@ export function CatalogManager({ accessToken }) {
             </tbody>
           </table>
         ) : (
-          // Attributes: simple list
+          // Master Attributes Table with expandable values drawer
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ backgroundColor: 'rgba(0,0,0,0.025)', borderBottom: '1px solid var(--border-subtle)' }}>
+                <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: '11px', fontWeight: '700', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>
+                  Código
+                </th>
                 <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: '11px', fontWeight: '700', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                  Nombre del Atributo
+                  Atributo / Descripción
+                </th>
+                <th style={{ padding: '10px 16px', textAlign: 'center', fontSize: '11px', fontWeight: '700', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>
+                  Valores Guardados
                 </th>
                 <th style={{ padding: '10px 16px', textAlign: 'right', fontSize: '11px', fontWeight: '700', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                   Acciones
@@ -432,16 +611,18 @@ export function CatalogManager({ accessToken }) {
             <tbody>
               {filteredAttributes.length === 0 ? (
                 <tr>
-                  <td colSpan={2} style={{ padding: '48px', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '14px' }}>
-                    {search ? `Sin resultados para "${search}"` : 'No hay atributos personalizados. Agregá el primero.'}
+                  <td colSpan={4} style={{ padding: '48px', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '14px' }}>
+                    {search ? `Sin resultados para "${search}"` : 'No hay atributos registrados. Creá el primero.'}
                   </td>
                 </tr>
               ) : (
                 filteredAttributes.map((item) => (
-                  <AttributeRow
+                  <MasterAttributeRow
                     key={item.id}
                     item={item}
+                    accessToken={accessToken}
                     onDelete={(id, name) => handleDelete(id, name, 'attribute')}
+                    onUpdate={(id, data) => updateAttribute.mutateAsync({ id, ...data })}
                   />
                 ))
               )}

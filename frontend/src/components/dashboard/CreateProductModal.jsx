@@ -4,7 +4,7 @@ import { Input } from '../ui/Input.jsx';
 import { Button } from '../ui/Button.jsx';
 import { createProductSchema } from '../../../../shared/schemas/product.schema.js';
 import { useCreateProduct } from '../../hooks/useProducts.js';
-import { useBrands, useCategories } from '../../hooks/useCatalog.js';
+import { useBrands, useCategories, useAllAttributeValues } from '../../hooks/useCatalog.js';
 import { CreateBrandModal } from './CreateBrandModal.jsx';
 import { CreateCategoryModal } from './CreateCategoryModal.jsx';
 
@@ -41,8 +41,16 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, accessToken }) 
   // brands se re-sortean automáticamente cuando cambia selectedCategoryId
   const { data: brands = [] } = useBrands(accessToken, selectedCategoryId || null);
   const { data: categories = [] } = useCategories(accessToken);
+  const { data: attributeValues = [] } = useAllAttributeValues(accessToken);
 
   if (!isOpen) return null;
+
+  // Filter attribute values per category/type for auto-suggestions
+  const modelOptions = attributeValues.filter((v) => v.attributeName?.toLowerCase().includes('modelo'));
+  const colorOptions = attributeValues.filter((v) => v.attributeName?.toLowerCase().includes('color'));
+  const sizeOptions = attributeValues.filter((v) => v.attributeName?.toLowerCase().includes('talla') || v.attributeName?.toLowerCase().includes('almacenamiento'));
+  const materialOptions = attributeValues.filter((v) => v.attributeName?.toLowerCase().includes('material'));
+  const warrantyOptions = attributeValues.filter((v) => v.attributeName?.toLowerCase().includes('garantía') || v.attributeName?.toLowerCase().includes('garantia'));
 
   const handleChange = (e) => {
     const { name, value, type } = e.target;
@@ -259,15 +267,34 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, accessToken }) 
             </div>
           </div>
 
+          {/* Atributos Maestros con Auto-sugerencias Dinámicas */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
-            <Input label="Modelo" name="modelName" value={formData.modelName} onChange={handleChange} placeholder="Pro Max" />
-            <Input label="Color" name="color" value={formData.color} onChange={handleChange} placeholder="Titanio Natural" />
-            <Input label="Talla / Almacenamiento" name="size" value={formData.size} onChange={handleChange} placeholder="256GB / M" />
+            <Input label="Modelo" name="modelName" value={formData.modelName} onChange={handleChange} placeholder="Pro Max" list="model-options" />
+            <datalist id="model-options">
+              {modelOptions.map((v) => <option key={v.id} value={v.value} />)}
+            </datalist>
+
+            <Input label="Color" name="color" value={formData.color} onChange={handleChange} placeholder="Titanio Natural" list="color-options" />
+            <datalist id="color-options">
+              {colorOptions.map((v) => <option key={v.id} value={v.value} />)}
+            </datalist>
+
+            <Input label="Talla / Almacenamiento" name="size" value={formData.size} onChange={handleChange} placeholder="256GB / M" list="size-options" />
+            <datalist id="size-options">
+              {sizeOptions.map((v) => <option key={v.id} value={v.value} />)}
+            </datalist>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-            <Input label="Material" name="material" value={formData.material} onChange={handleChange} placeholder="Titanio & Cristal" />
-            <Input label="Garantía" name="warrantyInfo" value={formData.warrantyInfo} onChange={handleChange} placeholder="12 Meses Oficial" />
+            <Input label="Material" name="material" value={formData.material} onChange={handleChange} placeholder="Titanio & Cristal" list="material-options" />
+            <datalist id="material-options">
+              {materialOptions.map((v) => <option key={v.id} value={v.value} />)}
+            </datalist>
+
+            <Input label="Garantía" name="warrantyInfo" value={formData.warrantyInfo} onChange={handleChange} placeholder="12 Meses Oficial" list="warranty-options" />
+            <datalist id="warranty-options">
+              {warrantyOptions.map((v) => <option key={v.id} value={v.value} />)}
+            </datalist>
           </div>
 
           {/* Precios Multi-nivel con decimal.js (8 decimales) */}

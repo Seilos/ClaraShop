@@ -1,5 +1,5 @@
 /**
- * useCatalog — TanStack Query hooks for Brands, Categories and Custom Attributes
+ * useCatalog — TanStack Query hooks for Brands, Categories and Master Attributes
  *
  * Mirrors the /api/v1/catalog/ endpoints with the same pattern as useProducts:
  * one hook per operation, single responsibility, queryKey-scoped invalidations.
@@ -12,6 +12,7 @@ const KEYS = {
   brands: 'catalog-brands',
   categories: 'catalog-categories',
   attributes: 'catalog-attributes',
+  attributeValues: 'catalog-attribute-values',
 };
 
 // ── Helper ────────────────────────────────────────────────────────────────────
@@ -94,7 +95,7 @@ export function useDeleteCategory(accessToken) {
   });
 }
 
-// ── Custom Attributes ─────────────────────────────────────────────────────────
+// ── Master Attributes ─────────────────────────────────────────────────────────
 
 export function useAttributes(accessToken) {
   return useQuery({
@@ -114,10 +115,74 @@ export function useCreateAttribute(accessToken) {
   });
 }
 
+export function useUpdateAttribute(accessToken) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }) => api.put(`/catalog/attributes/${id}`, data, { headers: authHeaders(accessToken) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [KEYS.attributes] }),
+  });
+}
+
 export function useDeleteAttribute(accessToken) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id) => api.delete(`/catalog/attributes/${id}`, { headers: authHeaders(accessToken) }),
     onSuccess: () => qc.invalidateQueries({ queryKey: [KEYS.attributes] }),
+  });
+}
+
+// ── Master Attribute Values ───────────────────────────────────────────────────
+
+export function useAllAttributeValues(accessToken) {
+  return useQuery({
+    queryKey: [KEYS.attributeValues, 'all'],
+    queryFn: () => api.get('/catalog/attributes/values/all', { headers: authHeaders(accessToken) }),
+    select: (res) => res.data,
+    enabled: !!accessToken,
+    staleTime: 60_000,
+  });
+}
+
+export function useAttributeValues(accessToken, attributeId) {
+  return useQuery({
+    queryKey: [KEYS.attributeValues, attributeId],
+    queryFn: () => api.get(`/catalog/attributes/${attributeId}/values`, { headers: authHeaders(accessToken) }),
+    select: (res) => res.data,
+    enabled: !!accessToken && !!attributeId,
+    staleTime: 60_000,
+  });
+}
+
+export function useCreateAttributeValue(accessToken) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ attributeId, ...data }) =>
+      api.post(`/catalog/attributes/${attributeId}/values`, data, { headers: authHeaders(accessToken) }),
+    onSuccess: (_, variables) => {
+      qc.invalidateQueries({ queryKey: [KEYS.attributeValues] });
+      qc.invalidateQueries({ queryKey: [KEYS.attributes] });
+    },
+  });
+}
+
+export function useUpdateAttributeValue(accessToken) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }) =>
+      api.put(`/catalog/attributes/values/${id}`, data, { headers: authHeaders(accessToken) }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [KEYS.attributeValues] });
+    },
+  });
+}
+
+export function useDeleteAttributeValue(accessToken) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id) => api.delete(`/catalog/attributes/values/${id}`, { headers: authHeaders(accessToken) }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [KEYS.attributeValues] });
+      qc.invalidateQueries({ queryKey: [KEYS.attributes] });
+    },
   });
 }

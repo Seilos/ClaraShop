@@ -110,6 +110,30 @@ export const customAttributes = sqliteTable('custom_attributes', {
   createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
 });
 
+// Tabla de Atributos Maestros del Tenant (ej: Modelo, Color, Talla / Almacenamiento, Material, Garantía)
+export const productAttributes = sqliteTable('product_attributes', {
+  id: text('id').primaryKey(), // UUIDv7
+  tenantId: text('tenant_id').notNull().references(() => tenants.id, { onDelete: 'cascade' }),
+  code: text('code').notNull(), // ej: ATT-001, ATT-MOD, ATT-COL
+  name: text('name').notNull(), // ej: Modelo, Color, Talla, Material, Garantía
+  description: text('description'),
+  isSystem: integer('is_system', { mode: 'boolean' }).default(false),
+  createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
+});
+
+// Tabla de Valores Maestros de Atributos (ej: Titanio Natural, 256GB / M, 12 Meses Oficial)
+export const attributeValues = sqliteTable('attribute_values', {
+  id: text('id').primaryKey(), // UUIDv7
+  tenantId: text('tenant_id').notNull().references(() => tenants.id, { onDelete: 'cascade' }),
+  attributeId: text('attribute_id').notNull().references(() => productAttributes.id, { onDelete: 'cascade' }),
+  code: text('code').notNull(), // ej: COL-001, TAL-001, VAL-001
+  value: text('value').notNull(),
+  description: text('description'),
+  createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
+});
+
 // Tabla de Productos Profesionales
 export const products = sqliteTable('products', {
   id: text('id').primaryKey(), // UUIDv7

@@ -19,9 +19,17 @@ router.post('/categories', CategoryController.createCategory);
 router.put('/categories/:id', CategoryController.updateCategory);
 router.delete('/categories/:id', CategoryController.deleteCategory);
 
-// ── Custom Attributes ────────────────────────────────────────────────────────
+// ── Master Attributes ────────────────────────────────────────────────────────
 router.get('/attributes', AttributeController.listAttributes);
 router.post('/attributes', AttributeController.createAttribute);
+router.put('/attributes/:id', AttributeController.updateAttribute);
 router.delete('/attributes/:id', AttributeController.deleteAttribute);
+
+// ── Master Attribute Values ──────────────────────────────────────────────────
+router.get('/attributes/values/all', AttributeController.listAllAttributeValues);
+router.get('/attributes/:attributeId/values', AttributeController.listAttributeValues);
+router.post('/attributes/:attributeId/values', AttributeController.createAttributeValue);
+router.put('/attributes/values/:id', AttributeController.updateAttributeValue);
+router.delete('/attributes/values/:id', AttributeController.deleteAttributeValue);
 
 export default router;

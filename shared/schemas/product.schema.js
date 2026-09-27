@@ -84,20 +84,33 @@ export const createBrandSchema = z.object({
   logoUrl: z.string().optional().nullable(),
 });
 
+export const updateBrandSchema = createBrandSchema.partial();
+
 export const createCategorySchema = z.object({
   name: z.string().min(1, 'El nombre de la categoría es requerido'),
   description: z.string().optional().nullable(),
+  slug: z.string().optional().nullable(),
 });
-
-export const createAttributeSchema = z.object({
-  name: z.string().min(1, 'El nombre del atributo es requerido (ej: Voltaje, Temporada)'),
-});
-
-/**
- * Update schemas: all fields optional (partial updates / PATCH-style via PUT)
- */
-export const updateProductSchema = createProductSchema.partial().omit({ customAttributes: true });
-
-export const updateBrandSchema = createBrandSchema.partial();
 
 export const updateCategorySchema = createCategorySchema.partial();
+
+export const createAttributeSchema = z.object({
+  name: z.string().min(1, 'El nombre del atributo es requerido (ej. Color, Talla, Material)'),
+  description: z.string().optional().nullable(),
+  code: z.string().optional().nullable(),
+});
+
+export const updateAttributeSchema = createAttributeSchema.partial();
+
+export const createAttributeValueSchema = z.object({
+  value: z.string().min(1, 'El valor del atributo es requerido (ej. Titanio Natural, XL, 12 Meses)'),
+  description: z.string().optional().nullable(),
+  code: z.string().optional().nullable(),
+});
+
+export const updateAttributeValueSchema = createAttributeValueSchema.partial();
+
+/**
+ * Update schemas: all fields optional
+ */
+export const updateProductSchema = createProductSchema.partial().omit({ customAttributes: true });
