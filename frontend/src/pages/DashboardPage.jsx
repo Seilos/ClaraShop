@@ -84,10 +84,7 @@ export function DashboardPage({ user, accessToken, onLogout }) {
           }}
         >
           <div>
-            <h2 style={{ fontSize: '18px', fontWeight: '700' }}>{getHeaderTitle()}</h2>
-            <span style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
-              Tenant ID: {user?.tenantSlug || user?.tenantId}
-            </span>
+            <h2 style={{ fontSize: '18px', fontWeight: '700', margin: 0 }}>{getHeaderTitle()}</h2>
           </div>
 
           {/* Badge del Usuario */}

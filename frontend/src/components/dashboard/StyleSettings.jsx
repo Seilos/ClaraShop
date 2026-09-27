@@ -23,6 +23,7 @@ export function StyleSettings({ selectedTheme = 'clarashop', onSelectTheme }) {
           flexDirection: 'column',
           boxSizing: 'border-box',
         }}
+      >
         {/* Tarjetas de Selección de Estilo */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: '20px' }}>
           
