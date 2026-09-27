@@ -23,34 +23,6 @@ export function StyleSettings({ selectedTheme = 'clarashop', onSelectTheme }) {
           flexDirection: 'column',
           boxSizing: 'border-box',
         }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-          <div
-            style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '10px',
-              backgroundColor: 'var(--accent-subtle)',
-              color: 'var(--accent-primary)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Palette size={22} />
-          </div>
-          <div>
-            <h3 style={{ fontSize: '20px', fontWeight: '700', margin: 0, color: 'var(--text-primary)' }}>
-              Estilos & Apariencia de la Tienda
-            </h3>
-            <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', margin: '4px 0 0 0' }}>
-              Elegí el diseño visual para el storefront y panel de tu marca.
-            </p>
-          </div>
-        </div>
-
-        <div style={{ margin: '24px 0', borderTop: '1px solid var(--border-subtle)' }} />
-
         {/* Tarjetas de Selección de Estilo */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: '20px' }}>
           

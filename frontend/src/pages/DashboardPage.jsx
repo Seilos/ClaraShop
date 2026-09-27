@@ -23,15 +23,15 @@ export function DashboardPage({ user, accessToken, onLogout }) {
   const getHeaderTitle = () => {
     switch (activeView) {
       case 'products':
-        return 'Gestión > Catálogo de Productos';
+        return 'Catálogo de Productos';
       case 'catalog':
-        return 'Gestión > Marcas & Categorías';
+        return 'Marcas & Categorías';
       case 'profile':
-        return 'Configuración > Perfil de Tienda';
+        return 'Perfil de Tienda';
       case 'currencies':
-        return 'Configuración > Monedas & Tasa de Cambio';
+        return 'Monedas & Tasa de Cambio';
       case 'styles':
-        return 'Configuración > Estilos de Tienda';
+        return 'Estilos de Tienda';
       default:
         return 'Panel de Control';
     }

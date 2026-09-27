@@ -60,13 +60,7 @@ export function CatalogManager({ accessToken }) {
   const isCreating = createBrand.isPending || createCategory.isPending || createAttribute.isPending;
 
   return (
-    <div className="apple-glass" style={{ width: '100%', flex: 1, minHeight: '100%', padding: '28px', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
-      <div style={{ marginBottom: '24px' }}>
-        <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '4px' }}>Gestión de Catálogo</h3>
-        <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-          Administrá las marcas, categorías y atributos dinámicos de tu tienda.
-        </p>
-      </div>
+    <div className="apple-glass" style={{ width: '100%', flex: 1, minHeight: '100%', padding: '24px', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>

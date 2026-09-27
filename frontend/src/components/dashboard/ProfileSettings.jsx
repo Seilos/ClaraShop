@@ -75,13 +75,7 @@ export function ProfileSettings({ accessToken }) {
   }
 
   return (
-    <div className="apple-glass" style={{ width: '100%', flex: 1, minHeight: '100%', padding: '28px', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
-      <div style={{ marginBottom: '24px' }}>
-        <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '4px' }}>Perfil de la Tienda</h3>
-        <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-          Información básica del negocio registrada durante el alta inicial.
-        </p>
-      </div>
+    <div className="apple-glass" style={{ width: '100%', flex: 1, minHeight: '100%', padding: '24px', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
 
       {message && (
         <div style={{ padding: '12px', borderRadius: 'var(--radius-sm)', backgroundColor: 'rgba(52, 199, 89, 0.1)', color: 'var(--status-success)', fontSize: '13px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>

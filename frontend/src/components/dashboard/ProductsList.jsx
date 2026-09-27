@@ -20,23 +20,9 @@ export function ProductsList({ accessToken, onOpenCreateModal }) {
   const filteredProducts = Array.isArray(productsData) ? productsData : [];
 
   return (
-    <div className="apple-glass" style={{ width: '100%', flex: 1, minHeight: '100%', padding: '28px', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
-      {/* Cabecera del Catálogo */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-        <div>
-          <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '4px' }}>Catálogo de Productos</h3>
-          <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-            Gestión profesional de inventario, precios multi-nivel (8 decimales) y características.
-          </p>
-        </div>
-
-        <Button variant="primary" onClick={onOpenCreateModal} icon={Plus}>
-          Nuevo Producto
-        </Button>
-      </div>
-
-      {/* Buscador y Filtros */}
-      <div style={{ marginBottom: '20px', display: 'flex', gap: '12px' }}>
+    <div className="apple-glass" style={{ width: '100%', flex: 1, minHeight: '100%', padding: '24px', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
+      {/* Buscador y Botón de Acción Principal */}
+      <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
         <div style={{ position: 'relative', flex: 1, display: 'flex', alignItems: 'center' }}>
           <Search size={18} style={{ position: 'absolute', left: '12px', color: 'var(--text-tertiary)' }} />
           <input
@@ -56,6 +42,10 @@ export function ProductsList({ accessToken, onOpenCreateModal }) {
             }}
           />
         </div>
+
+        <Button variant="primary" onClick={onOpenCreateModal} icon={Plus}>
+          Nuevo Producto
+        </Button>
       </div>
 
       {/* Grid / Lista de Productos */}
