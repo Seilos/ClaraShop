@@ -4,6 +4,11 @@ import { Settings, Store, DollarSign, ChevronDown, ChevronRight, LogOut, Package
 export function Sidebar({ activeView, setActiveView, tenantName, onLogout }) {
   const [isConfigOpen, setIsConfigOpen] = useState(true);
 
+  // Formatear el nombre de la tienda: sin guiones y con mayúscula inicial en cada palabra
+  const formattedStoreName = (tenantName || 'Mi Tienda')
+    .replace(/-/g, ' ')
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+
   const navItemStyle = (isActive) => ({
     display: 'flex',
     alignItems: 'center',
@@ -37,13 +42,13 @@ export function Sidebar({ activeView, setActiveView, tenantName, onLogout }) {
       }}
     >
       <div>
-        {/* Cabecera Sidebar */}
-        <div style={{ padding: '0 8px 20px 8px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '16px' }}>
+        {/* Cabecera Sidebar con Nombre Formateado de Tienda */}
+        <div style={{ padding: '0 8px 18px 8px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div
               style={{
-                width: '36px',
-                height: '36px',
+                width: '38px',
+                height: '38px',
                 borderRadius: 'var(--radius-sm)',
                 backgroundColor: 'var(--accent-primary)',
                 color: '#fff',
@@ -51,13 +56,29 @@ export function Sidebar({ activeView, setActiveView, tenantName, onLogout }) {
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontWeight: '700',
+                flexShrink: 0,
               }}
             >
               <Store size={20} />
             </div>
-            <div>
-              <h3 style={{ fontSize: '15px', fontWeight: '700', lineHeight: '1.2' }}>{tenantName || 'Mi Tienda'}</h3>
-              <span style={{ fontSize: '11px', color: 'var(--text-tertiary)', fontWeight: '500' }}>Panel de Control</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <h3
+                style={{
+                  fontSize: formattedStoreName.length > 20 ? '13px' : '15px',
+                  fontWeight: '700',
+                  lineHeight: '1.25',
+                  color: 'var(--text-primary)',
+                  margin: 0,
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                  overflowWrap: 'break-word',
+                  wordBreak: 'break-word',
+                }}
+              >
+                {formattedStoreName}
+              </h3>
             </div>
           </div>
         </div>
