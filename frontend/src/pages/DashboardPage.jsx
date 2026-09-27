@@ -42,7 +42,8 @@ export function DashboardPage({ user, accessToken, onLogout }) {
       className={selectedTheme === 'clarashop' ? 'theme-clarashop' : ''}
       style={{
         position: 'relative',
-        minHeight: '100vh',
+        height: '100vh',
+        width: '100vw',
         display: 'flex',
         padding: '24px',
         backgroundColor: 'var(--bg-primary)',
@@ -59,8 +60,8 @@ export function DashboardPage({ user, accessToken, onLogout }) {
         </div>
       )}
 
-      {/* Panel Lateral con Menú Desplegable */}
-      <div style={{ position: 'relative', zIndex: 1, display: 'flex', width: '100%' }}>
+      {/* Contenedor Principal de la Aplicación */}
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', gap: '24px', width: '100%', height: 'calc(100vh - 48px)' }}>
         <Sidebar
           activeView={activeView}
           setActiveView={setActiveView}
@@ -69,7 +70,7 @@ export function DashboardPage({ user, accessToken, onLogout }) {
         />
 
         {/* Área Principal de Contenido */}
-        <main style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        <main style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', minWidth: 0 }}>
         {/* Header Superior Estilo Apple */}
         <header
           className="apple-glass"
@@ -115,7 +116,7 @@ export function DashboardPage({ user, accessToken, onLogout }) {
         </header>
 
         {/* Vistas según selección lateral */}
-        <section style={{ flex: 1 }}>
+        <section style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, width: '100%', overflowY: 'auto' }}>
           {activeView === 'products' && (
             <ProductsList accessToken={accessToken} onOpenCreateModal={() => setIsCreateModalOpen(true)} />
           )}

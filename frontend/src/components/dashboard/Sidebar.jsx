@@ -27,12 +27,13 @@ export function Sidebar({ activeView, setActiveView, tenantName, onLogout }) {
       className="apple-glass"
       style={{
         width: '260px',
-        minHeight: 'calc(100vh - 48px)',
+        height: '100%',
         padding: '20px 16px',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        marginRight: '24px',
+        boxSizing: 'border-box',
+        flexShrink: 0,
       }}
     >
       <div>

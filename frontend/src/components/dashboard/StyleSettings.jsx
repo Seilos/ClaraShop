@@ -10,12 +10,17 @@ export function StyleSettings({ selectedTheme = 'clarashop', onSelectTheme }) {
   };
 
   return (
-    <div style={{ width: '100%', maxWidth: '900px' }}>
+    <div style={{ width: '100%', flex: 1, minHeight: '100%', display: 'flex', flexDirection: 'column' }}>
       <div
         className="apple-glass"
         style={{
+          width: '100%',
+          flex: 1,
+          minHeight: '100%',
           padding: '28px',
           borderRadius: 'var(--radius-md)',
+          display: 'flex',
+          flexDirection: 'column',
           boxSizing: 'border-box',
         }}
       >

@@ -71,7 +71,7 @@ export function CurrencySettings({ accessToken }) {
   }
 
   return (
-    <div className="apple-glass" style={{ padding: '28px', maxWidth: '680px' }}>
+    <div className="apple-glass" style={{ width: '100%', flex: 1, minHeight: '100%', padding: '28px', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
       <div style={{ marginBottom: '24px' }}>
         <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '4px' }}>Configuración de Monedas & Tasa de Cambio</h3>
         <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>

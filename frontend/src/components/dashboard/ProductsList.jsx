@@ -20,7 +20,7 @@ export function ProductsList({ accessToken, onOpenCreateModal }) {
   const filteredProducts = Array.isArray(productsData) ? productsData : [];
 
   return (
-    <div className="apple-glass" style={{ padding: '28px' }}>
+    <div className="apple-glass" style={{ width: '100%', flex: 1, minHeight: '100%', padding: '28px', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
       {/* Cabecera del Catálogo */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
         <div>
@@ -60,15 +60,15 @@ export function ProductsList({ accessToken, onOpenCreateModal }) {
 
       {/* Grid / Lista de Productos */}
       {isLoading ? (
-        <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+        <div style={{ padding: '40px', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
           Cargando productos...
         </div>
       ) : isError ? (
-        <div style={{ padding: '40px', textAlign: 'center', color: 'var(--status-danger)' }}>
+        <div style={{ padding: '40px', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--status-danger)' }}>
           Error al cargar los productos.
         </div>
       ) : filteredProducts.length === 0 ? (
-        <div style={{ padding: '40px', textAlign: 'center', backgroundColor: 'var(--bg-primary)', borderRadius: 'var(--radius-md)' }}>
+        <div style={{ padding: '60px 40px', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--bg-primary)', borderRadius: 'var(--radius-md)' }}>
           <Package size={48} style={{ color: 'var(--text-tertiary)', marginBottom: '12px' }} />
           <h4 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '4px' }}>No hay productos en el catálogo</h4>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
