@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { Input } from '../ui/Input.jsx';
+import { Select } from '../ui/Select.jsx';
 import { Button } from '../ui/Button.jsx';
+import { COUNTRIES, getStatesByCountry } from '../../data/geoData.js';
 import { registerTenantSchema } from '../../../../shared/schemas/auth.schema.js';
 import api from '../../utils/api.js';
 
@@ -15,7 +17,7 @@ export function RegisterForm({ onSuccess, onToggleLogin }) {
     email: '',
     password: '',
     country: '',
-    city: '',
+    city: '',      // kept as 'city' for backend compatibility; displayed as 'Estado'
     address: '',
   });
   const [errors, setErrors] = useState({});
@@ -35,6 +37,9 @@ export function RegisterForm({ onSuccess, onToggleLogin }) {
         .replace(/^-|-$/g, '');
 
       setFormData((prev) => ({ ...prev, storeName: value, slug: generatedSlug }));
+    } else if (name === 'country') {
+      // Reset state when country changes
+      setFormData((prev) => ({ ...prev, country: value, city: '' }));
     } else {
       setFormData((prev) => ({
         ...prev,
@@ -46,6 +51,8 @@ export function RegisterForm({ onSuccess, onToggleLogin }) {
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: null }));
     if (serverError) setServerError('');
   };
+
+  const stateOptions = getStatesByCountry(formData.country);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -97,7 +104,7 @@ export function RegisterForm({ onSuccess, onToggleLogin }) {
 
       {/* Sección 1: Datos de la Tienda */}
       <div style={{ marginBottom: '16px' }}>
-        <h4 style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-tertiary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        <h4 style={{ fontSize: '12px', fontWeight: '800', color: '#334155', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
           1. Configuración de Tienda
         </h4>
 
@@ -122,7 +129,7 @@ export function RegisterForm({ onSuccess, onToggleLogin }) {
 
       {/* Sección 2: Datos del Usuario Administrador */}
       <div style={{ marginBottom: '16px' }}>
-        <h4 style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-tertiary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        <h4 style={{ fontSize: '12px', fontWeight: '800', color: '#334155', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
           2. Datos del Administrador
         </h4>
 
@@ -177,25 +184,27 @@ export function RegisterForm({ onSuccess, onToggleLogin }) {
 
       {/* Sección 3: Ubicación y Dirección */}
       <div style={{ marginBottom: '20px' }}>
-        <h4 style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-tertiary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        <h4 style={{ fontSize: '12px', fontWeight: '800', color: '#334155', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
           3. Dirección de Operaciones
         </h4>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-          <Input
+          <Select
             name="country"
             value={formData.country}
             onChange={handleChange}
             error={errors.country}
-            placeholder="País (ej: Argentina)"
+            options={COUNTRIES}
+            placeholder="País"
             required
           />
-          <Input
+          <Select
             name="city"
             value={formData.city}
             onChange={handleChange}
             error={errors.city}
-            placeholder="Ciudad (ej: Buenos Aires)"
+            options={stateOptions}
+            placeholder={formData.country ? 'Estado / Provincia' : 'Selecciona un país primero'}
             required
           />
         </div>
@@ -223,10 +232,14 @@ export function RegisterForm({ onSuccess, onToggleLogin }) {
               background: 'none',
               border: 'none',
               fontSize: '13px',
-              color: 'var(--accent-primary)',
+              color: '#4f46e5',
               fontWeight: '600',
               cursor: 'pointer',
+              padding: '4px 8px',
+              transition: 'color 150ms ease',
             }}
+            onMouseEnter={(e) => (e.target.style.textDecoration = 'underline')}
+            onMouseLeave={(e) => (e.target.style.textDecoration = 'none')}
           >
             ¿Ya tenés una tienda? Iniciar sesión
           </button>

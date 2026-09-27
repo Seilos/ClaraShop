@@ -2,7 +2,7 @@ import app from './app.js';
 import { logger } from './utils/logger.js';
 import { runMigrations } from './db/migrate.js';
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 4017;
 
 // Capturador global de excepciones no atrapadas
 process.on('uncaughtException', (err) => {

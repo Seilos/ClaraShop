@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle2, KeyRound, ArrowLeft } from 'lucide-react';
 import { Input } from '../ui/Input.jsx';
 import { Button } from '../ui/Button.jsx';
 import { loginSchema } from '../../../../shared/schemas/auth.schema.js';
@@ -14,6 +14,12 @@ export function LoginForm({ onSuccess, onToggleRegister }) {
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Estado para flujo de "Olvidé mi contraseña"
+  const [isForgotView, setIsForgotView] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotSubmitted, setForgotSubmitted] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -50,6 +56,98 @@ export function LoginForm({ onSuccess, onToggleRegister }) {
       setIsLoading(false);
     }
   };
+
+  const handleForgotSubmit = async (e) => {
+    e.preventDefault();
+    if (!forgotEmail) return;
+
+    setForgotLoading(true);
+    // Simular envío de enlace de recuperación (o endpoint real)
+    setTimeout(() => {
+      setForgotLoading(false);
+      setForgotSubmitted(true);
+    }, 800);
+  };
+
+  // Si el usuario presiona "¿Olvidaste tu contraseña?", mostramos el panel de recuperación
+  if (isForgotView) {
+    return (
+      <div key="forgot-view" className="animate-view-transition" style={{ width: '100%' }}>
+        <button
+          type="button"
+          onClick={() => {
+            setIsForgotView(false);
+            setForgotSubmitted(false);
+          }}
+          style={{
+            background: 'none',
+            border: 'none',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            color: '#4f46e5',
+            fontSize: '13px',
+            fontWeight: '600',
+            cursor: 'pointer',
+            padding: 0,
+            marginBottom: '16px',
+          }}
+        >
+          <ArrowLeft size={16} />
+          Volver a iniciar sesión
+        </button>
+
+        <h4 style={{ fontSize: '16px', fontWeight: '700', color: '#1e293b', marginBottom: '8px' }}>
+          Recuperar contraseña
+        </h4>
+
+        {forgotSubmitted ? (
+          <div
+            style={{
+              padding: '16px',
+              borderRadius: '12px',
+              backgroundColor: 'rgba(52, 199, 89, 0.12)',
+              border: '1px solid rgba(52, 199, 89, 0.3)',
+              color: '#15803d',
+              fontSize: '14px',
+              lineHeight: '1.5',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '700', marginBottom: '6px' }}>
+              <CheckCircle2 size={18} />
+              Instrucciones enviadas
+            </div>
+            Si la cuenta existe con el correo <strong>{forgotEmail}</strong>, recibirás un enlace de recuperación en los próximos minutos.
+          </div>
+        ) : (
+          <form onSubmit={handleForgotSubmit}>
+            <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '16px', lineHeight: '1.4' }}>
+              Ingresá tu correo electrónico registrado y te enviaremos las instrucciones para restablecer tu clave.
+            </p>
+
+            <Input
+              name="forgotEmail"
+              type="email"
+              value={forgotEmail}
+              onChange={(e) => setForgotEmail(e.target.value)}
+              placeholder="Correo electrónico"
+              required
+              autoComplete="email"
+            />
+
+            <button
+              type="submit"
+              className="btn-luxury-primary"
+              disabled={forgotLoading || !forgotEmail}
+              style={{ marginTop: '12px' }}
+            >
+              {forgotLoading ? 'Enviando...' : 'Enviar enlace de recuperación'}
+            </button>
+          </form>
+        )}
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} style={{ width: '100%' }}>
@@ -128,14 +226,36 @@ export function LoginForm({ onSuccess, onToggleRegister }) {
         {isLoading ? 'Iniciando sesión...' : 'Iniciar sesión'}
       </button>
 
+      {/* Opción ¿Olvidaste tu contraseña? justo debajo del botón de iniciar sesión */}
+      <div style={{ textAlign: 'center', marginTop: '12px' }}>
+        <button
+          type="button"
+          onClick={() => setIsForgotView(true)}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: '#4f46e5',
+            fontSize: '13px',
+            fontWeight: '600',
+            cursor: 'pointer',
+            padding: '4px 8px',
+            transition: 'color 150ms ease',
+          }}
+          onMouseEnter={(e) => (e.target.style.textDecoration = 'underline')}
+          onMouseLeave={(e) => (e.target.style.textDecoration = 'none')}
+        >
+          ¿Olvidaste tu contraseña?
+        </button>
+      </div>
+
       {onToggleRegister && (
         <>
-          <div style={{ margin: '24px 0 20px 0', borderTop: '1px solid var(--border-subtle)' }} />
+          <div style={{ margin: '20px 0 20px 0', borderTop: '1px solid var(--border-subtle)' }} />
           <div style={{ textAlign: 'center' }}>
             <button
               type="button"
               onClick={onToggleRegister}
-              className="btn-luxury-secondary"
+              className="btn-luxury-outline"
             >
               Crear nueva tienda
             </button>

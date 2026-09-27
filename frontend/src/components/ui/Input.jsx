@@ -72,19 +72,18 @@ export function Input({
         />
       </div>
 
-      {/* Siempre reserva espacio — invisible cuando no hay error */}
-      <p
-        style={{
-          fontSize: '12px',
-          color: 'var(--status-danger)',
-          marginTop: '4px',
-          fontWeight: '500',
-          minHeight: '16px',           /* altura fija = una línea de texto */
-          visibility: error ? 'visible' : 'hidden',
-        }}
-      >
-        {error || '\u00A0'}
-      </p>
+      {error && (
+        <p
+          style={{
+            fontSize: '12px',
+            color: 'var(--status-danger)',
+            marginTop: '4px',
+            fontWeight: '500',
+          }}
+        >
+          {error}
+        </p>
+      )}
     </div>
   );
 }

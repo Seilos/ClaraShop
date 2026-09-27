@@ -15,6 +15,7 @@ export function AuthPage({ onAuthSuccess }) {
   return (
     <div
       style={{
+        position: 'relative',
         minHeight: '100vh',
         width: '100%',
         display: 'flex',
@@ -22,11 +23,18 @@ export function AuthPage({ onAuthSuccess }) {
         justifyContent: 'center',
         padding: '32px 16px',
         boxSizing: 'border-box',
-        backgroundColor: '#0f172a',
-        backgroundImage: 'radial-gradient(circle at 50% 0%, rgba(0, 122, 255, 0.18) 0%, rgba(15, 23, 42, 0.97) 70%)',
+        backgroundColor: '#0b0f19',
         fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif',
+        overflow: 'hidden',
       }}
     >
+      {/* Capa de Auras Ambientales Flotantes en Segundo Plano */}
+      <div className="aura-container">
+        <div className="aura-orb aura-orb-1" />
+        <div className="aura-orb aura-orb-2" />
+        <div className="aura-orb aura-orb-3" />
+      </div>
+
       {/*
        * WRAPPER: columna principal que agrupa header de marca + las dos columnas.
        * En desktop: max-width 960px, centrado.
@@ -34,6 +42,8 @@ export function AuthPage({ onAuthSuccess }) {
        */}
       <div
         style={{
+          position: 'relative',
+          zIndex: 1,
           width: '100%',
           maxWidth: '960px',
           display: 'flex',
@@ -242,10 +252,12 @@ export function AuthPage({ onAuthSuccess }) {
                 }}
               />
 
-              {/* Contenido sobre la card */}
+              {/* Contenido sobre la card con transición suave */}
               <div style={{ position: 'relative', zIndex: 1 }}>
                 <div style={{ marginBottom: '20px' }}>
                   <h3
+                    key={`title-${activeTab}`}
+                    className="animate-view-transition"
                     style={{
                       fontSize: '20px',
                       fontWeight: '700',
@@ -279,17 +291,19 @@ export function AuthPage({ onAuthSuccess }) {
                   </div>
                 )}
 
-                {activeTab === 'login' ? (
-                  <LoginForm
-                    onSuccess={onAuthSuccess}
-                    onToggleRegister={() => setActiveTab('register')}
-                  />
-                ) : (
-                  <RegisterForm
-                    onSuccess={handleRegisterSuccess}
-                    onToggleLogin={() => setActiveTab('login')}
-                  />
-                )}
+                <div key={`view-${activeTab}`} className="animate-view-transition">
+                  {activeTab === 'login' ? (
+                    <LoginForm
+                      onSuccess={onAuthSuccess}
+                      onToggleRegister={() => setActiveTab('register')}
+                    />
+                  ) : (
+                    <RegisterForm
+                      onSuccess={handleRegisterSuccess}
+                      onToggleLogin={() => setActiveTab('login')}
+                    />
+                  )}
+                </div>
               </div>
             </div>
           </div>
